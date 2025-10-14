@@ -300,16 +300,16 @@ export default function VehiclesPage() {
             </div>
 
             <Tabs defaultValue="dashboard" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-slate-100 to-slate-200 p-1 rounded-xl shadow-inner">
-                    <TabsTrigger value="dashboard" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-slate-700 to-slate-800 p-1 rounded-xl shadow-inner">
+                    <TabsTrigger value="dashboard" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-medium text-slate-300">
                       <Fuel className="h-4 w-4 mr-2" />
                       Abastecimentos
                     </TabsTrigger>
-                    <TabsTrigger value="maintenanceControl" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                    <TabsTrigger value="maintenanceControl" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-medium text-slate-300">
                       <Car className="h-4 w-4 mr-2" />
                       Controle de Manutenções
                     </TabsTrigger>
-                    <TabsTrigger value="maintenanceSchedule" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                    <TabsTrigger value="maintenanceSchedule" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg font-medium text-slate-300">
                       <PlusCircle className="h-4 w-4 mr-2" />
                       Agendar Manutenções
                     </TabsTrigger>
