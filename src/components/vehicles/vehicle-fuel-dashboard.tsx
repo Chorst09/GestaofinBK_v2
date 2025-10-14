@@ -241,19 +241,19 @@ export function VehicleFuelDashboard({
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-blue-600 to-purple-600 text-white border-0 shadow-xl">
+        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
           <CardHeader>
             <CardTitle className="font-headline text-lg text-white flex items-center gap-2">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Car className="h-5 w-5" />
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Car className="h-5 w-5 text-blue-400" />
               </div>
               Simulador de Viagem
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <label htmlFor="trip-distance" className="text-sm font-medium flex items-center gap-2 mb-3 text-white">
-                <Gauge size={16}/>
+              <label htmlFor="trip-distance" className="text-sm font-medium flex items-center gap-2 mb-3 text-slate-300">
+                <Gauge size={16} className="text-purple-400"/>
                 Km da Viagem
               </label>
               <Input 
@@ -262,12 +262,12 @@ export function VehicleFuelDashboard({
                 value={tripDistance} 
                 onChange={(e) => setTripDistance(Number(e.target.value))} 
                 placeholder="ex: 500" 
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+                className="bg-white/5 border-slate-600 text-white placeholder:text-slate-400 focus:bg-white/10"
               />
             </div>
-            <div className="p-4 bg-white/10 rounded-xl">
-              <p className="text-sm font-medium flex items-center gap-2 mb-2 text-white/80">
-                <Coins size={16}/>
+            <div className="p-4 bg-white/5 rounded-xl border border-slate-600">
+              <p className="text-sm font-medium flex items-center gap-2 mb-2 text-slate-300">
+                <Coins size={16} className="text-green-400"/>
                 Custo Estimado da Viagem
               </p>
               <p className="text-3xl font-bold font-headline text-white">R$ {tripCost.toFixed(2)}</p>
@@ -289,53 +289,53 @@ export function VehicleFuelDashboard({
             </Button>
         </div>
         
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-50 to-slate-100">
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-800 to-slate-900">
             <CardContent className="p-0">
             <Table>
                 <TableHeader>
-                <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Combustível</TableHead>
-                    <TableHead className="text-right">Km Inicial</TableHead>
-                    <TableHead className="text-right">Km Final</TableHead>
-                    <TableHead className="text-right">Km Rodados</TableHead>
-                    <TableHead className="text-right">Litros</TableHead>
-                    <TableHead>Posto</TableHead>
-                    <TableHead className="text-right">Custo Total</TableHead>
-                    <TableHead className="text-right">R$/Litro</TableHead>
-                    <TableHead className="text-right">Km/Litro</TableHead>
-                    <TableHead className="text-right">R$/Km</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
+                <TableRow className="border-slate-700">
+                    <TableHead className="text-slate-300">Data</TableHead>
+                    <TableHead className="text-slate-300">Tipo</TableHead>
+                    <TableHead className="text-slate-300">Combustível</TableHead>
+                    <TableHead className="text-right text-slate-300">Km Inicial</TableHead>
+                    <TableHead className="text-right text-slate-300">Km Final</TableHead>
+                    <TableHead className="text-right text-slate-300">Km Rodados</TableHead>
+                    <TableHead className="text-right text-slate-300">Litros</TableHead>
+                    <TableHead className="text-slate-300">Posto</TableHead>
+                    <TableHead className="text-right text-slate-300">Custo Total</TableHead>
+                    <TableHead className="text-right text-slate-300">R$/Litro</TableHead>
+                    <TableHead className="text-right text-slate-300">Km/Litro</TableHead>
+                    <TableHead className="text-right text-slate-300">R$/Km</TableHead>
+                    <TableHead className="text-center text-slate-300">Ações</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {fuelData.length === 0 && otherExpenses.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={13} className="h-24 text-center">Nenhuma despesa registrada para este veículo.</TableCell>
+                    <TableRow className="border-slate-700">
+                        <TableCell colSpan={13} className="h-24 text-center text-slate-300">Nenhuma despesa registrada para este veículo.</TableCell>
                     </TableRow>
                 )}
                 {fuelData.map((data) => (
-                    <TableRow key={data.id}>
-                    <TableCell>{format(parseISO(data.date), 'dd/MM/yyyy')}</TableCell>
-                    <TableCell><Badge variant="outline"><Fuel className="h-3 w-3 mr-1" /> Combustível</Badge></TableCell>
-                    <TableCell>{data.originalExpense.fuelType ? fuelTypeLabels[data.originalExpense.fuelType] : '-'}</TableCell>
-                    <TableCell className="text-right">{data.kmInitial || '-'}</TableCell>
-                    <TableCell className="text-right">{data.kmFinal}</TableCell>
-                    <TableCell className="text-right">{data.kmDriven > 0 ? data.kmDriven : '-'}</TableCell>
-                    <TableCell className="text-right">{data.liters.toFixed(2)}</TableCell>
-                    <TableCell>{data.station || '-'}</TableCell>
-                    <TableCell className="text-right font-medium">R$ {data.totalCost.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{data.costPerLiter > 0 ? `R$ ${data.costPerLiter.toFixed(2)}` : '-'}</TableCell>
-                    <TableCell className="text-right">{data.kmPerLiter > 0 ? data.kmPerLiter.toFixed(2) : '-'}</TableCell>
-                    <TableCell className="text-right">{data.costPerKm > 0 ? `R$ ${data.costPerKm.toFixed(2)}` : '-'}</TableCell>
+                    <TableRow key={data.id} className="border-slate-700">
+                    <TableCell className="text-white">{format(parseISO(data.date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell><Badge variant="outline" className="border-slate-600 text-slate-300"><Fuel className="h-3 w-3 mr-1" /> Combustível</Badge></TableCell>
+                    <TableCell className="text-white">{data.originalExpense.fuelType ? fuelTypeLabels[data.originalExpense.fuelType] : '-'}</TableCell>
+                    <TableCell className="text-right text-white">{data.kmInitial || '-'}</TableCell>
+                    <TableCell className="text-right text-white">{data.kmFinal}</TableCell>
+                    <TableCell className="text-right text-white">{data.kmDriven > 0 ? data.kmDriven : '-'}</TableCell>
+                    <TableCell className="text-right text-white">{data.liters.toFixed(2)}</TableCell>
+                    <TableCell className="text-white">{data.station || '-'}</TableCell>
+                    <TableCell className="text-right font-medium text-white">R$ {data.totalCost.toFixed(2)}</TableCell>
+                    <TableCell className="text-right text-white">{data.costPerLiter > 0 ? `R$ ${data.costPerLiter.toFixed(2)}` : '-'}</TableCell>
+                    <TableCell className="text-right text-white">{data.kmPerLiter > 0 ? data.kmPerLiter.toFixed(2) : '-'}</TableCell>
+                    <TableCell className="text-right text-white">{data.costPerKm > 0 ? `R$ ${data.costPerKm.toFixed(2)}` : '-'}</TableCell>
                     <TableCell className="text-center">
-                        <Button variant="ghost" size="icon" onClick={() => onOpenForm(data.originalExpense)} className="mr-1">
+                        <Button variant="ghost" size="icon" onClick={() => onOpenForm(data.originalExpense)} className="mr-1 text-slate-300 hover:text-white hover:bg-slate-700">
                             <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-300 hover:bg-red-500/10"><Trash2 className="h-4 w-4" /></Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                             <AlertDialogHeader>
@@ -354,22 +354,22 @@ export function VehicleFuelDashboard({
                 {otherExpenses.map((expense) => {
                     const typeInfo = otherExpenseTypeDetails[expense.expenseType] || otherExpenseTypeDetails.other;
                     return (
-                        <TableRow key={expense.id}>
-                             <TableCell>{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
+                        <TableRow key={expense.id} className="border-slate-700">
+                             <TableCell className="text-white">{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
                              <TableCell>
-                                <Badge variant="secondary"><typeInfo.icon className="h-3 w-3 mr-1" />{typeInfo.label}</Badge>
+                                <Badge variant="secondary" className="bg-slate-700 text-slate-300 border-slate-600"><typeInfo.icon className="h-3 w-3 mr-1" />{typeInfo.label}</Badge>
                              </TableCell>
-                             <TableCell>-</TableCell>
-                             <TableCell colSpan={5} className="text-muted-foreground">{expense.description}</TableCell>
-                             <TableCell className="text-right font-medium">R$ {expense.amount.toFixed(2)}</TableCell>
+                             <TableCell className="text-white">-</TableCell>
+                             <TableCell colSpan={5} className="text-slate-300">{expense.description}</TableCell>
+                             <TableCell className="text-right font-medium text-white">R$ {expense.amount.toFixed(2)}</TableCell>
                              <TableCell colSpan={3}></TableCell>
                              <TableCell className="text-center">
-                                <Button variant="ghost" size="icon" onClick={() => onOpenForm(expense)} className="mr-1">
+                                <Button variant="ghost" size="icon" onClick={() => onOpenForm(expense)} className="mr-1 text-slate-300 hover:text-white hover:bg-slate-700">
                                     <Edit className="h-4 w-4" />
                                 </Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-300 hover:bg-red-500/10"><Trash2 className="h-4 w-4" /></Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                     <AlertDialogHeader>
