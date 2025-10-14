@@ -10,8 +10,13 @@ import { cn } from '@/lib/utils';
 
 // Bank Logos
 const BradescoSimplifiedLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M9 17V7" /><path d="M15 17V7" /><path d="M7 7C7 5.00004 9.5 4 12 4C14.5 4 17 5.00004 17 7" />
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
+    <rect x="2" y="4" width="20" height="16" rx="2" fill="#CC092F" />
+    <g stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 17V7" />
+      <path d="M15 17V7" />
+      <path d="M7 7C7 5.00004 9.5 4 12 4C14.5 4 17 5.00004 17 7" />
+    </g>
   </svg>
 );
 
@@ -156,7 +161,10 @@ interface BankLogoProps extends React.SVGProps<SVGSVGElement> {
 }
 
 export function BankLogo({ logoKey, photoUrl, type = 'bank', className, ...props }: BankLogoProps) {
-  const commonProps = { className: cn("h-6 w-6 text-muted-foreground", className), ...props };
+  // Special handling for banks with custom colors
+  const hasCustomColor = logoKey === 'bradesco' || logoKey === 'santander' || logoKey === 'inter';
+  const baseClassName = hasCustomColor ? "h-6 w-6" : "h-6 w-6 text-muted-foreground";
+  const commonProps = { className: cn(baseClassName, className), ...props };
 
   if (photoUrl) {
     return (
