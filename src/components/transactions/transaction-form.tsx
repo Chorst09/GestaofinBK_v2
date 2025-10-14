@@ -50,6 +50,7 @@ const formSchema = z.object({
   type: z.enum(['income', 'expense'], { required_error: 'Tipo é obrigatório.' }),
   category: z.string().min(1, { message: 'Categoria é obrigatória.' }),
   date: z.date({ required_error: 'Data é obrigatória.' }),
+  status: z.enum(['paid', 'pending'], { required_error: 'Status é obrigatório.' }),
   creditCardId: z.string().optional(),
   cardBrand: z.string().optional(),
   bankAccountId: z.string().optional(),
@@ -88,6 +89,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
           ...initialData,
           date: new Date(initialData.date),
           amount: Math.abs(initialData.amount), 
+          status: initialData.status || 'paid',
           creditCardId: initialData.creditCardId || NO_CARD_SELECTED_VALUE,
           cardBrand: initialData.cardBrand || '',
           bankAccountId: initialData.bankAccountId || NO_BANK_ACCOUNT_SELECTED_VALUE,
@@ -98,6 +100,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
           type: 'expense',
           category: '',
           date: new Date(),
+          status: 'paid',
           creditCardId: NO_CARD_SELECTED_VALUE,
           cardBrand: '',
           bankAccountId: NO_BANK_ACCOUNT_SELECTED_VALUE,
@@ -116,8 +119,8 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
   }, [selectedCategoryName, getCategoryByName]);
 
   const showCardFields = selectedCategoryConfig?.isCreditCard && transactionType === 'expense';
-  // Mostrar campo de conta bancária se não for uma despesa de cartão de crédito OU se for receita e a categoria for "Saldo em Conta"
-  const showBankAccountField = !showCardFields || (transactionType === 'income' && selectedCategoryName === 'Saldo em Conta');
+  // Mostrar campo de conta bancária se não for uma despesa de cartão de crédito OU se for receita
+  const showBankAccountField = !showCardFields;
 
   React.useEffect(() => {
     // Ao selecionar "Saldo em Conta", forçar o tipo para "income"
@@ -177,6 +180,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
       type: values.type,
       category: values.category,
       date: values.date.toISOString(),
+      status: values.status,
       creditCardId: isCreditCardExpenseItem && values.creditCardId && values.creditCardId !== NO_CARD_SELECTED_VALUE 
                       ? values.creditCardId 
                       : undefined,
@@ -200,6 +204,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
         type: 'expense',
         category: '',
         date: new Date(),
+        status: 'paid',
         creditCardId: NO_CARD_SELECTED_VALUE,
         cardBrand: '',
         bankAccountId: NO_BANK_ACCOUNT_SELECTED_VALUE,
@@ -265,6 +270,36 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
                       <RadioGroupItem value="income" />
                     </FormControl>
                     <FormLabel className="font-normal">Receita</FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Status</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-row space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="paid" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Pago</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="pending" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Pendente</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

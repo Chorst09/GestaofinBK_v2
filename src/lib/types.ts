@@ -10,6 +10,7 @@ export interface Transaction {
   cardBrand?: string; // Bandeira do cartão (opcional)
   creditCardId?: string; // ID do cartão de crédito associado, se aplicável
   bankAccountId?: string; // ID da conta bancária associada, se aplicável
+  status: 'paid' | 'pending'; // Status da transação: pago ou pendente
 }
 
 export type TransactionFormData = Omit<Transaction, 'id'>;

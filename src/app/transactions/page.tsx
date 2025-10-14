@@ -39,7 +39,7 @@ import { TransactionForm } from '@/components/transactions/transaction-form';
 import type { Transaction } from '@/lib/types';
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { PlusCircle, Edit, Trash2, CreditCard as CreditCardIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, CreditCard as CreditCardIcon, ChevronLeft, ChevronRight, CheckCircle, Clock } from 'lucide-react';
 import { useAllCategories } from '@/hooks/useAllCategories';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -182,6 +182,7 @@ export default function TransactionsPage() {
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
                     <TableHead>Conta/Cartão</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
@@ -264,6 +265,23 @@ export default function TransactionsPage() {
                         <TableCell>
                           {accountOrCardElement}
                         </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={transaction.status === 'paid' ? 'default' : 'secondary'}
+                            className={`flex items-center gap-1 w-fit ${
+                              transaction.status === 'paid' 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-orange-100 text-orange-800 border-orange-200'
+                            }`}
+                          >
+                            {transaction.status === 'paid' ? (
+                              <CheckCircle className="h-3 w-3" />
+                            ) : (
+                              <Clock className="h-3 w-3" />
+                            )}
+                            {transaction.status === 'paid' ? 'Pago' : 'Pendente'}
+                          </Badge>
+                        </TableCell>
                         <TableCell className={`text-right font-medium ${transaction.amount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
                           R$ {Math.abs(transaction.amount).toFixed(2)}
                         </TableCell>
@@ -301,7 +319,7 @@ export default function TransactionsPage() {
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={4} className="font-bold">Totais do Mês</TableCell>
+                    <TableCell colSpan={5} className="font-bold">Totais do Mês</TableCell>
                     <TableCell className="text-right" colSpan={2}>
                       <div className="space-y-1 text-right">
                         <div className="flex justify-between gap-2">

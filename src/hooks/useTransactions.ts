@@ -31,9 +31,21 @@ export function useTransactions(isBackupInstance = false): UseTransactionsReturn
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    const sorted = [...storedTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Migração: adicionar campo status para transações existentes que não o possuem
+    const migratedTransactions = storedTransactions.map(transaction => ({
+      ...transaction,
+      status: transaction.status || 'paid' // Default para 'paid' se não existir
+    })) as Transaction[];
+    
+    // Verificar se alguma migração foi necessária
+    const needsMigration = storedTransactions.some(t => !(t as any).status);
+    if (needsMigration) {
+      setStoredTransactions(migratedTransactions);
+    }
+    
+    const sorted = [...migratedTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setTransactions(sorted);
-  }, [storedTransactions]);
+  }, [storedTransactions, setStoredTransactions]);
 
 
   const addTransaction = useCallback((transactionData: TransactionFormData) => {
@@ -41,6 +53,7 @@ export function useTransactions(isBackupInstance = false): UseTransactionsReturn
       id: uuidv4(),
       ...transactionData,
       amount: Number(transactionData.amount),
+      status: transactionData.status || 'paid',
       cardBrand: transactionData.cardBrand || undefined,
       creditCardId: transactionData.creditCardId || undefined,
       bankAccountId: transactionData.bankAccountId || undefined,
@@ -53,6 +66,7 @@ export function useTransactions(isBackupInstance = false): UseTransactionsReturn
         id: uuidv4(),
         ...td,
         amount: Number(td.amount),
+        status: td.status || 'paid',
         cardBrand: td.cardBrand || undefined,
         creditCardId: td.creditCardId || undefined, 
         bankAccountId: td.bankAccountId || undefined,
@@ -65,7 +79,8 @@ export function useTransactions(isBackupInstance = false): UseTransactionsReturn
       prevTransactions.map(t => (t.id === updatedTransaction.id 
         ? {
             ...updatedTransaction, 
-            amount: Number(updatedTransaction.amount), 
+            amount: Number(updatedTransaction.amount),
+            status: updatedTransaction.status || 'paid',
             cardBrand: updatedTransaction.cardBrand || undefined,
             creditCardId: updatedTransaction.creditCardId || undefined,
             bankAccountId: updatedTransaction.bankAccountId || undefined,
