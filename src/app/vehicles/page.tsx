@@ -172,97 +172,125 @@ export default function VehiclesPage() {
       </Dialog>
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-headline font-semibold">Gestão de Veículos</h1>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div>
+          <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Gestão de Veículos
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Controle completo dos seus veículos e despesas
+          </p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {vehicles.length > 0 && (
             <Select onValueChange={setSelectedVehicleId} value={selectedVehicleId || ''}>
-              <SelectTrigger className="w-full sm:w-[250px]">
+              <SelectTrigger className="w-full sm:w-[280px] bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 shadow-sm">
                 <SelectValue placeholder="Selecione um veículo" />
               </SelectTrigger>
               <SelectContent>
                 {vehicles.map(vehicle => (
                   <SelectItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.name} ({vehicle.plate || `${vehicle.brand} ${vehicle.model}`})
+                    <div className="flex items-center gap-2">
+                      <BankLogo logoKey={vehicle.logoKey} type="vehicle" className="h-4 w-4" />
+                      {vehicle.name} ({vehicle.plate || `${vehicle.brand} ${vehicle.model}`})
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
-          <Button onClick={() => handleOpenVehicleForm(null)}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Veículo
+          <Button onClick={() => handleOpenVehicleForm(null)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
+            <PlusCircle className="mr-2 h-4 w-4" /> Novo Veículo
           </Button>
         </div>
       </div>
       
       {!selectedVehicle ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-16 bg-gradient-to-br from-slate-50 to-slate-100 border-0 shadow-xl">
             <CardHeader>
-                <Car className="mx-auto h-12 w-12 text-muted-foreground" />
-                <CardTitle className="mt-4 font-headline">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <Car className="h-10 w-10 text-blue-600" />
+                </div>
+                <CardTitle className="mt-4 font-headline text-2xl">
                   {vehicles.length === 0 ? 'Nenhum veículo cadastrado' : 'Selecione um veículo'}
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <CardDescription>
+                <CardDescription className="text-lg mb-6">
                   {vehicles.length === 0 
-                    ? 'Comece adicionando seu primeiro veículo para gerenciar os gastos.'
-                    : 'Escolha um veículo no seletor acima para ver os detalhes.'}
+                    ? 'Comece adicionando seu primeiro veículo para gerenciar os gastos de forma inteligente.'
+                    : 'Escolha um veículo no seletor acima para ver os detalhes e análises.'}
                 </CardDescription>
                 {vehicles.length === 0 && (
-                  <Button className="mt-4" onClick={() => handleOpenVehicleForm(null)}>
-                      <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Primeiro Veículo
+                  <Button 
+                    className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg px-8 py-3 text-lg" 
+                    onClick={() => handleOpenVehicleForm(null)}
+                  >
+                      <PlusCircle className="mr-2 h-5 w-5" /> Adicionar Primeiro Veículo
                   </Button>
                 )}
             </CardContent>
         </Card>
       ) : (
         <div>
-            <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-4">
-
-                    {selectedVehicle.photoUrl ? (
-                      <Image 
-                          src={selectedVehicle.photoUrl} 
-                          alt={`Foto de ${selectedVehicle.name}`} 
-                          width={48} 
-                          height={48} 
-                          className="rounded-lg object-cover w-12 h-12 border"
-                      />
-                    ) : (
-                        <BankLogo logoKey={selectedVehicle.logoKey} type="vehicle" className="h-12 w-12 text-primary" />
-                    )}
-                    <div>
-                        <h2 className="text-xl font-bold font-headline">{selectedVehicle.name}</h2>
-                        <p className="text-muted-foreground">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</p>
-                    </div>
+            <Card className="mb-6 bg-gradient-to-r from-slate-800 to-slate-900 text-white border-0 shadow-xl">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-6">
+                      <div className="relative">
+                        {selectedVehicle.photoUrl ? (
+                          <Image 
+                              src={selectedVehicle.photoUrl} 
+                              alt={`Foto de ${selectedVehicle.name}`} 
+                              width={80} 
+                              height={80} 
+                              className="rounded-xl object-cover w-20 h-20 border-2 border-white/20 shadow-lg"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <BankLogo logoKey={selectedVehicle.logoKey} type="vehicle" className="h-10 w-10 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                          <h2 className="text-2xl font-bold font-headline text-white mb-1">{selectedVehicle.name}</h2>
+                          <p className="text-slate-300 text-lg">{selectedVehicle.brand} {selectedVehicle.model}</p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-sm bg-white/10 px-3 py-1 rounded-full">Ano: {selectedVehicle.year}</span>
+                            {selectedVehicle.plate && (
+                              <span className="text-sm bg-white/10 px-3 py-1 rounded-full">Placa: {selectedVehicle.plate}</span>
+                            )}
+                          </div>
+                      </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenVehicleForm(selectedVehicle)} className="text-white hover:bg-white/10">
+                          <Edit className="h-5 w-5" />
+                          <span className="sr-only">Editar Veículo</span>
+                      </Button>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                              <Trash2 className="h-5 w-5" />
+                              <span className="sr-only">Excluir Veículo</span>
+                          </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                              Tem certeza que deseja excluir o veículo "{selectedVehicle.name}"? Todas as despesas associadas a ele também serão removidas. Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteVehicle(selectedVehicle.id)} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                          </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenVehicleForm(selectedVehicle)} className="mr-1">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar Veículo</span>
-                    </Button>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Excluir Veículo</span>
-                        </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                            Tem certeza que deseja excluir o veículo "{selectedVehicle.name}"? Todas as despesas associadas a ele também serão removidas. Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteVehicle(selectedVehicle.id)} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
-                        </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            </div>
+              </CardContent>
+            </Card>
             
             {/* Next Maintenance Card */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -272,10 +300,19 @@ export default function VehiclesPage() {
             </div>
 
             <Tabs defaultValue="dashboard" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="dashboard">Abastecimentos</TabsTrigger>
-                    <TabsTrigger value="maintenanceControl">Controle de Manutenções</TabsTrigger>
-                    <TabsTrigger value="maintenanceSchedule">Agendar Manutenções</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-slate-100 to-slate-200 p-1 rounded-xl shadow-inner">
+                    <TabsTrigger value="dashboard" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                      <Fuel className="h-4 w-4 mr-2" />
+                      Abastecimentos
+                    </TabsTrigger>
+                    <TabsTrigger value="maintenanceControl" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                      <Car className="h-4 w-4 mr-2" />
+                      Controle de Manutenções
+                    </TabsTrigger>
+                    <TabsTrigger value="maintenanceSchedule" className="data-[state=active]:bg-white data-[state=active]:shadow-md rounded-lg font-medium">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Agendar Manutenções
+                    </TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
                     <VehicleFuelDashboard 

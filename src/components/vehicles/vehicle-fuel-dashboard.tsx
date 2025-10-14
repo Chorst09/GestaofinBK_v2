@@ -193,45 +193,103 @@ export function VehicleFuelDashboard({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
           <CardHeader>
-            <CardTitle className="font-headline text-lg flex items-center gap-2"><SlidersHorizontal /> Médias (Combustível)</CardTitle>
+            <CardTitle className="font-headline text-lg flex items-center gap-2 text-white">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <SlidersHorizontal className="h-5 w-5 text-blue-400" />
+              </div>
+              Médias (Combustível)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center text-sm"><span className="flex items-center gap-2 text-muted-foreground"><Droplets size={16}/>Total Litros</span> <span className="font-semibold">{averages.totalLiters.toFixed(2)} L</span></div>
-            <div className="flex justify-between items-center text-sm"><span className="flex items-center gap-2 text-muted-foreground"><DollarSign size={16}/>Custo Total</span> <span className="font-semibold">R$ {averages.totalCost.toFixed(2)}</span></div>
-            <div className="flex justify-between items-center text-sm"><span className="flex items-center gap-2 text-muted-foreground"><Fuel size={16}/>Custo/Litro</span> <span className="font-semibold">R$ {averages.avgCostPerLiter.toFixed(2)}</span></div>
-            <div className="flex justify-between items-center text-sm"><span className="flex items-center gap-2 text-muted-foreground"><Gauge size={16}/>Km/Litro</span> <span className="font-semibold">{averages.avgKmPerLiter.toFixed(2)}</span></div>
-            <div className="flex justify-between items-center text-sm"><span className="flex items-center gap-2 text-muted-foreground"><Car size={16}/>Custo/Km</span> <span className="font-semibold">R$ {averages.avgCostPerKm.toFixed(2)}</span></div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+              <span className="flex items-center gap-2 text-slate-300">
+                <Droplets size={16} className="text-blue-400"/>
+                Total Litros
+              </span> 
+              <span className="font-semibold text-white">{averages.totalLiters.toFixed(2)} L</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+              <span className="flex items-center gap-2 text-slate-300">
+                <DollarSign size={16} className="text-green-400"/>
+                Custo Total
+              </span> 
+              <span className="font-semibold text-white">R$ {averages.totalCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+              <span className="flex items-center gap-2 text-slate-300">
+                <Fuel size={16} className="text-red-400"/>
+                Custo/Litro
+              </span> 
+              <span className="font-semibold text-white">R$ {averages.avgCostPerLiter.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+              <span className="flex items-center gap-2 text-slate-300">
+                <Gauge size={16} className="text-purple-400"/>
+                Km/Litro
+              </span> 
+              <span className="font-semibold text-white">{averages.avgKmPerLiter.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+              <span className="flex items-center gap-2 text-slate-300">
+                <Car size={16} className="text-orange-400"/>
+                Custo/Km
+              </span> 
+              <span className="font-semibold text-white">R$ {averages.avgCostPerKm.toFixed(2)}</span>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-600 to-purple-600 text-white border-0 shadow-xl">
           <CardHeader>
-            <CardTitle className="font-headline text-lg">Simulador de Viagem</CardTitle>
+            <CardTitle className="font-headline text-lg text-white flex items-center gap-2">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Car className="h-5 w-5" />
+              </div>
+              Simulador de Viagem
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
-              <label htmlFor="trip-distance" className="text-sm font-medium flex items-center gap-2 mb-2"><Gauge size={16}/>Km da Viagem</label>
-              <Input id="trip-distance" type="number" value={tripDistance} onChange={(e) => setTripDistance(Number(e.target.value))} placeholder="e.g. 500" />
+              <label htmlFor="trip-distance" className="text-sm font-medium flex items-center gap-2 mb-3 text-white">
+                <Gauge size={16}/>
+                Km da Viagem
+              </label>
+              <Input 
+                id="trip-distance" 
+                type="number" 
+                value={tripDistance} 
+                onChange={(e) => setTripDistance(Number(e.target.value))} 
+                placeholder="ex: 500" 
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+              />
             </div>
-            <div>
-              <p className="text-sm font-medium flex items-center gap-2"><Coins size={16}/>Custo Estimado da Viagem</p>
-              <p className="text-2xl font-bold font-headline text-primary">R$ {tripCost.toFixed(2)}</p>
+            <div className="p-4 bg-white/10 rounded-xl">
+              <p className="text-sm font-medium flex items-center gap-2 mb-2 text-white/80">
+                <Coins size={16}/>
+                Custo Estimado da Viagem
+              </p>
+              <p className="text-3xl font-bold font-headline text-white">R$ {tripCost.toFixed(2)}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-headline font-semibold">Histórico de Despesas</h3>
-            <Button onClick={() => onOpenForm(null)}>
+        <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-headline font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+              Histórico de Despesas
+            </h3>
+            <Button 
+              onClick={() => onOpenForm(null)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+            >
                 <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Despesa
             </Button>
         </div>
         
-        <Card>
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-50 to-slate-100">
             <CardContent className="p-0">
             <Table>
                 <TableHeader>

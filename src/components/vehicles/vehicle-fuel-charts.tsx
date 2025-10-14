@@ -193,12 +193,17 @@ export function VehicleFuelCharts({ expenses, allVehicles }: VehicleFuelChartsPr
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid gap-6 md:grid-cols-2 mt-6">
       {/* Total Fuel Cost Chart */}
-      <Card>
+      <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="font-headline text-lg flex items-center gap-2"><DollarSign /> Custo Total por Mês</CardTitle>
-          <CardDescription>Visualização do custo total de combustível mensal.</CardDescription>
+          <CardTitle className="font-headline text-lg flex items-center gap-2 text-white">
+            <div className="p-2 bg-red-500/20 rounded-lg">
+              <DollarSign className="h-5 w-5 text-red-400" />
+            </div>
+            Custo Total por Mês
+          </CardTitle>
+          <CardDescription className="text-slate-300">Visualização do custo total de combustível mensal.</CardDescription>
         </CardHeader>
         <CardContent className="pl-2">
           <ChartContainer config={chartConfigCost} className="h-[250px] w-full">
@@ -236,10 +241,15 @@ export function VehicleFuelCharts({ expenses, allVehicles }: VehicleFuelChartsPr
       </Card>
 
       {/* Average Km/Liter Chart */}
-      <Card>
+      <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="font-headline text-lg flex items-center gap-2"><Gauge /> Km/Litro Médio por Mês</CardTitle>
-          <CardDescription>Visualização da eficiência de combustível mensal.</CardDescription>
+          <CardTitle className="font-headline text-lg flex items-center gap-2 text-white">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <Gauge className="h-5 w-5 text-blue-400" />
+            </div>
+            Km/Litro Médio por Mês
+          </CardTitle>
+          <CardDescription className="text-slate-300">Visualização da eficiência de combustível mensal.</CardDescription>
         </CardHeader>
         <CardContent className="pl-2">
           <ChartContainer config={chartConfigKmPerLiter} className="h-[250px] w-full">
@@ -277,10 +287,15 @@ export function VehicleFuelCharts({ expenses, allVehicles }: VehicleFuelChartsPr
       </Card>
 
        {/* Average Cost/Km Chart */}
-       <Card>
+       <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="font-headline text-lg flex items-center gap-2"><Car /> Custo Médio por Km por Mês</CardTitle>
-          <CardDescription>Visualização do custo por quilômetro rodado mensal.</CardDescription>
+          <CardTitle className="font-headline text-lg flex items-center gap-2 text-white">
+            <div className="p-2 bg-purple-500/20 rounded-lg">
+              <Car className="h-5 w-5 text-purple-400" />
+            </div>
+            Custo Médio por Km por Mês
+          </CardTitle>
+          <CardDescription className="text-slate-300">Visualização do custo por quilômetro rodado mensal.</CardDescription>
         </CardHeader>
         <CardContent className="pl-2">
           <ChartContainer config={chartConfigCostPerKm} className="h-[250px] w-full">
@@ -318,10 +333,15 @@ export function VehicleFuelCharts({ expenses, allVehicles }: VehicleFuelChartsPr
       </Card>
 
        {/* Average Cost/Liter Chart */}
-       <Card>
+       <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0 shadow-xl">
         <CardHeader>
-          <CardTitle className="font-headline text-lg flex items-center gap-2"><Droplets /> Custo Médio por Litro por Mês</CardTitle>
-          <CardDescription>Visualização do custo médio por litro de combustível mensal.</CardDescription>
+          <CardTitle className="font-headline text-lg flex items-center gap-2 text-white">
+            <div className="p-2 bg-green-500/20 rounded-lg">
+              <Droplets className="h-5 w-5 text-green-400" />
+            </div>
+            Custo Médio por Litro por Mês
+          </CardTitle>
+          <CardDescription className="text-slate-300">Visualização do custo médio por litro de combustível mensal.</CardDescription>
         </CardHeader>
         <CardContent className="pl-2">
           <ChartContainer config={chartConfigCostPerLiter} className="h-[250px] w-full">
