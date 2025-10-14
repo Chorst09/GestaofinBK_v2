@@ -1,0 +1,119 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 205 60% 97%; /* Very Light Cyan-Blue */
+    --foreground: 215 35% 25%; /* Dark Slate Blue */
+
+    --muted: 205 50% 92%; /* Light Muted Cyan-Blue */
+    --muted-foreground: 210 25% 45%; /* Muted Blue-Gray */
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 215 35% 25%; /* Dark Slate Blue */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 215 35% 25%; /* Dark Slate Blue */
+
+    --border: 205 30% 88%; /* Light Blue Border */
+    --input: 205 40% 94%; /* Very Light Blue Input */
+
+    --primary: 220 70% 50%; /* Strong Blue */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 210 60% 93%; /* Lighter version of primary for secondary elements */
+    --secondary-foreground: 220 40% 30%; /* Darker blue text for secondary */
+
+    --accent: 124 39% 64%; /* Gentle Green */
+    --accent-foreground: 124 100% 20%; /* Dark Green */
+
+    --destructive: 0 84% 60%; /* Standard Red */
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 220 70% 55%; /* Focus ring, slightly lighter primary */
+    --radius: 0.5rem;
+
+    /* Chart Colors for Light Theme */
+    --chart-1: 220 70% 50%;   /* Primary Blue */
+    --chart-2: 124 39% 64%;   /* Accent Green */
+    --chart-3: 200 75% 65%;   /* Lighter Sky Blue */
+    --chart-4: 45 85% 55%;    /* Warm Gold/Yellow */
+    --chart-5: 190 65% 55%;   /* Tealish Blue */
+    --chart-6: 230 60% 70%;   /* Lavender Blue */
+    --chart-7: 55 75% 65%;    /* Warmer Yellow/Light Orange */
+    --chart-8: 170 50% 65%;   /* Seafoam */
+    --chart-9: 330 70% 75%;   /* Light Pink (warmish) */
+    --chart-10: 210 50% 70%;  /* Soft Blue */
+
+
+    --sidebar-background: 205 45% 95%; /* Light blue-gray for sidebar */
+    --sidebar-foreground: 215 30% 35%;
+    --sidebar-primary: 220 70% 50%; 
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 205 40% 88%; 
+    --sidebar-accent-foreground: 215 35% 25%;
+    --sidebar-border: 205 30% 80%;
+  }
+
+  .dark {
+    --background: 220 30% 10%; /* Very Dark Blue - Darkened further */
+    --foreground: 30 40% 92%; /* Light Warm Off-White - Slightly brightened for contrast */
+
+    --muted: 220 25% 16%; /* Darker Muted Blue - Adjusted for new background */
+    --muted-foreground: 220 15% 60%; /* Lighter Muted Blue-Gray */
+
+    --popover: 220 28% 9%; /* Even Darker Blue for Popovers - Almost background color */
+    --popover-foreground: 30 40% 92%;
+
+    --card: 220 27% 13%; /* Dark Blue for Cards - Darkened */
+    --card-foreground: 30 40% 92%;
+
+    --border: 220 20% 28%; /* Subtle Dark Blue Border - Adjusted */
+    --input: 220 20% 22%; /* Dark Blue Input Background - Adjusted */
+
+    --primary: 215 65% 58%; /* Vibrant Darker Blue */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 215 35% 35%; /* Muted Dark Blue for secondary */
+    --secondary-foreground: 210 25% 88%; /* Light Blue-Gray */
+
+    --accent: 124 45% 55%; /* Brighter Gentle Green */
+    --accent-foreground: 124 10% 95%; /* Light Green */
+
+    --destructive: 0 75% 55%; /* Slightly deeper red for dark mode */
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 215 65% 65%; /* Lighter primary for focus ring */
+    
+    /* Chart Colors for Dark Theme */
+    --chart-1: 215 65% 58%;   /* Primary Dark Blue */
+    --chart-2: 124 45% 55%;   /* Accent Green */
+    --chart-3: 205 70% 70%;   /* Lighter Complementary Blue */
+    --chart-4: 45 85% 55%;    /* Warm Gold/Yellow */
+    --chart-5: 190 60% 60%;   /* Tealish Blue */
+    --chart-6: 225 50% 75%;   /* Softer Blue */
+    --chart-7: 55 75% 65%;    /* Warmer Yellow/Light Orange */
+    --chart-8: 180 45% 70%;   /* Muted Teal */
+    --chart-9: 25 80% 70%;    /* Light Orange/Peach */
+    --chart-10: 230 40% 80%;  /* Pale Lavender Blue */
+
+    --sidebar-background: 220 26% 8%; /* Slightly different very dark blue for sidebar */
+    --sidebar-foreground: 30 40% 88%;
+    --sidebar-primary: 215 65% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 20%; /* Subtle accent for hover states */
+    --sidebar-accent-foreground: 30 40% 92%;
+    --sidebar-border: 220 20% 25%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
