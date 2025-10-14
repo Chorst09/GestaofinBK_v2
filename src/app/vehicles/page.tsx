@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { PlusCircle, Car, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Car, Edit, Trash2, Fuel } from 'lucide-react';
 import Image from 'next/image';
 
 import { useVehicles } from '@/hooks/useVehicles';
