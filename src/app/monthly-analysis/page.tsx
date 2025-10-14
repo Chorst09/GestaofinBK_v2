@@ -175,63 +175,63 @@ export default function MonthlyAnalysisPage() {
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Resumo Card */}
-            <Card className="lg:col-span-1 shadow-sm border-0 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <Card className="lg:col-span-1 shadow-lg border bg-gradient-to-br from-slate-800 to-slate-900 text-white">
               <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2">
-                  <Scale className="h-5 w-5 text-blue-600" />
+                <CardTitle className="font-headline flex items-center gap-2 text-white">
+                  <Scale className="h-5 w-5 text-blue-400" />
                   Resumo do Mês
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
-                <div className="space-y-2 p-4 bg-white/80 backdrop-blur-sm rounded-lg border">
-                    <h3 className="font-semibold text-base mb-3 text-gray-800">Realizado</h3>
+                <div className="space-y-2 p-4 bg-slate-700/90 backdrop-blur-sm rounded-lg border border-slate-600">
+                    <h3 className="font-semibold text-base mb-3 text-white">Realizado</h3>
                     <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><TrendingUp size={16} /> Ganhos</span>
-                        <span className="font-medium text-green-600">{formatCurrency(analysisData.realizedIncome)}</span>
+                        <span className="flex items-center gap-2 text-slate-300"><TrendingUp size={16} /> Ganhos</span>
+                        <span className="font-medium text-green-400">{formatCurrency(analysisData.realizedIncome)}</span>
                     </div>
                      <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><TrendingDown size={16} /> Gastos</span>
-                        <span className="font-medium text-red-600">{formatCurrency(analysisData.realizedExpenses)}</span>
+                        <span className="flex items-center gap-2 text-slate-300"><TrendingDown size={16} /> Gastos</span>
+                        <span className="font-medium text-red-400">{formatCurrency(analysisData.realizedExpenses)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><LineChart size={16} /> Investimentos</span>
-                        <span className="font-medium text-purple-600">{formatCurrency(analysisData.investmentExpenses)}</span>
+                        <span className="flex items-center gap-2 text-slate-300"><LineChart size={16} /> Investimentos</span>
+                        <span className="font-medium text-purple-400">{formatCurrency(analysisData.investmentExpenses)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><PiggyBank size={16} /> Guardado (Metas)</span>
-                        <span className="font-medium text-blue-600">{formatCurrency(analysisData.goalContributionsInPeriod)}</span>
+                        <span className="flex items-center gap-2 text-slate-300"><PiggyBank size={16} /> Guardado (Metas)</span>
+                        <span className="font-medium text-blue-400">{formatCurrency(analysisData.goalContributionsInPeriod)}</span>
                     </div>
                     <Separator className="my-3" />
                      <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><Scale size={16} /> Balanço do Período</span>
-                        <span className={cn("font-semibold", analysisData.periodBalance >= 0 ? 'text-green-600' : 'text-red-600')}>
+                        <span className="flex items-center gap-2 text-slate-300"><Scale size={16} /> Balanço do Período</span>
+                        <span className={cn("font-semibold", analysisData.periodBalance >= 0 ? 'text-green-400' : 'text-red-400')}>
                             {formatCurrency(analysisData.periodBalance)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="flex items-center gap-2 text-muted-foreground"><PiggyBank size={16} /> Saldo Mês Anterior</span>
-                        <span className={cn("font-medium", analysisData.totalInitialBalance >= 0 ? 'text-foreground' : 'text-red-600')}>
+                        <span className="flex items-center gap-2 text-slate-300"><PiggyBank size={16} /> Saldo Mês Anterior</span>
+                        <span className={cn("font-medium", analysisData.totalInitialBalance >= 0 ? 'text-white' : 'text-red-400')}>
                             {formatCurrency(analysisData.totalInitialBalance)}
                         </span>
                     </div>
                     <Separator className="my-3" />
-                    <div className="flex justify-between items-center font-bold text-base p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                        <span>Saldo Final do Mês</span>
-                        <span className={cn((analysisData.totalInitialBalance + analysisData.periodBalance) >= 0 ? 'text-green-600' : 'text-red-600')}>
+                    <div className="flex justify-between items-center font-bold text-base p-2 bg-gradient-to-r from-slate-600 to-slate-500 rounded-lg">
+                        <span className="text-white">Saldo Final do Mês</span>
+                        <span className={cn((analysisData.totalInitialBalance + analysisData.periodBalance) >= 0 ? 'text-green-300' : 'text-red-300')}>
                             {formatCurrency(analysisData.totalInitialBalance + analysisData.periodBalance)}
                         </span>
                     </div>
                 </div>
                 
-                <div className="space-y-2 p-4 bg-white/80 backdrop-blur-sm rounded-lg border">
-                     <h3 className="font-semibold text-base mb-3 text-gray-800">Pendente</h3>
+                <div className="space-y-2 p-4 bg-slate-700/90 backdrop-blur-sm rounded-lg border border-slate-600">
+                     <h3 className="font-semibold text-base mb-3 text-white">Pendente</h3>
                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">A Receber</span>
-                        <span className="font-medium text-green-600">{formatCurrency(analysisData.pendingIncome)}</span>
+                        <span className="text-slate-300">A Receber</span>
+                        <span className="font-medium text-green-400">{formatCurrency(analysisData.pendingIncome)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">A Pagar</span>
-                        <span className="font-medium text-red-600">{formatCurrency(analysisData.pendingExpenses)}</span>
+                        <span className="text-slate-300">A Pagar</span>
+                        <span className="font-medium text-red-400">{formatCurrency(analysisData.pendingExpenses)}</span>
                     </div>
                 </div>
               </CardContent>
@@ -269,13 +269,13 @@ export default function MonthlyAnalysisPage() {
         </TabsContent>
 
         <TabsContent value="accounts" className="space-y-6">
-          <Card className="shadow-sm">
+          <Card className="shadow-lg bg-slate-800 text-white border-slate-700">
               <CardHeader>
-                  <CardTitle className="font-headline flex items-center gap-2">
-                    <Scale className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="font-headline flex items-center gap-2 text-white">
+                    <Scale className="h-5 w-5 text-blue-400" />
                     Evolução de Saldo em Contas
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-slate-300">
                       Saldo inicial vs. final de {currentMonth && period.start && period.end ? `${format(period.start, 'dd/MM/yyyy', { locale: ptBR })} a ${format(period.end, 'dd/MM/yyyy', { locale: ptBR })}` : ''}.
                   </CardDescription>
               </CardHeader>

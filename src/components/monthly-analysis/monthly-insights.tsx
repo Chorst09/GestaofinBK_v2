@@ -201,10 +201,10 @@ export function MonthlyInsights({
 
   const getInsightColor = (type: Insight['type']) => {
     switch (type) {
-      case 'positive': return 'text-green-600 bg-green-50 border-green-200';
-      case 'negative': return 'text-red-600 bg-red-50 border-red-200';
-      case 'warning': return 'text-orange-600 bg-orange-50 border-orange-200';
-      default: return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'positive': return 'text-green-300 bg-green-900/30 border-green-700';
+      case 'negative': return 'text-red-300 bg-red-900/30 border-red-700';
+      case 'warning': return 'text-orange-300 bg-orange-900/30 border-orange-700';
+      default: return 'text-blue-300 bg-blue-900/30 border-blue-700';
     }
   };
 
@@ -218,10 +218,10 @@ export function MonthlyInsights({
   };
 
   return (
-    <Card>
+    <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2">
-          <Lightbulb className="h-5 w-5" />
+        <CardTitle className="font-headline flex items-center gap-2 text-white">
+          <Lightbulb className="h-5 w-5 text-yellow-400" />
           Insights do Mês
         </CardTitle>
       </CardHeader>
@@ -240,7 +240,7 @@ export function MonthlyInsights({
                       </Badge>
                     )}
                   </div>
-                  <AlertDescription className="text-sm">
+                  <AlertDescription className="text-sm text-slate-200">
                     {insight.description}
                   </AlertDescription>
                 </div>

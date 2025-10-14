@@ -62,9 +62,9 @@ export function MonthlySpendingBreakdown({ transactions }: MonthlySpendingBreakd
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background border rounded-lg p-3 shadow-lg">
-          <p className="font-medium">{data.category}</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="bg-slate-700 border border-slate-600 rounded-lg p-3 shadow-lg">
+          <p className="font-medium text-white">{data.category}</p>
+          <p className="text-sm text-slate-300">
             {formatCurrency(data.amount)} ({data.percentage.toFixed(1)}%)
           </p>
         </div>
@@ -89,9 +89,9 @@ export function MonthlySpendingBreakdown({ transactions }: MonthlySpendingBreakd
   }
 
   return (
-    <Card>
+    <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="font-headline">Gastos por Categoria</CardTitle>
+        <CardTitle className="font-headline text-white">Gastos por Categoria</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -124,13 +124,13 @@ export function MonthlySpendingBreakdown({ transactions }: MonthlySpendingBreakd
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="text-sm font-medium truncate">{item.category}</span>
+                  <span className="text-sm font-medium truncate text-white">{item.category}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
                     {item.percentage.toFixed(1)}%
                   </Badge>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-white">
                     {formatCurrency(item.amount)}
                   </span>
                 </div>

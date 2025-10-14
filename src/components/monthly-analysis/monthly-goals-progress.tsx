@@ -96,14 +96,14 @@ export function MonthlyGoalsProgress({
   }
 
   return (
-    <Card>
+    <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="font-headline flex items-center gap-2">
-          <Target className="h-5 w-5" />
+        <CardTitle className="font-headline flex items-center gap-2 text-white">
+          <Target className="h-5 w-5 text-blue-400" />
           Progresso das Metas
         </CardTitle>
         {totalMonthlyContributions > 0 && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-slate-300">
             <TrendingUp className="h-4 w-4" />
             Total investido este mês: {formatCurrency(totalMonthlyContributions)}
           </div>
@@ -115,7 +115,7 @@ export function MonthlyGoalsProgress({
             <div key={goal.id} className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-medium">{goal.name}</h4>
+                  <h4 className="font-medium text-white">{goal.name}</h4>
                   {goal.isCompleted && (
                     <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -124,10 +124,10 @@ export function MonthlyGoalsProgress({
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium">
+                  <div className="text-sm font-medium text-white">
                     {formatCurrency(goal.currentAmount)} / {formatCurrency(goal.targetAmount)}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-slate-300">
                     {goal.progressPercentage.toFixed(1)}% concluído
                   </div>
                 </div>
@@ -139,8 +139,8 @@ export function MonthlyGoalsProgress({
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-green-600" />
                   <div>
-                    <div className="font-medium">Este mês</div>
-                    <div className="text-muted-foreground">
+                    <div className="font-medium text-white">Este mês</div>
+                    <div className="text-slate-300">
                       {formatCurrency(goal.monthlyContributions)}
                     </div>
                   </div>
@@ -149,8 +149,8 @@ export function MonthlyGoalsProgress({
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-blue-600" />
                   <div>
-                    <div className="font-medium">Sugerido/mês</div>
-                    <div className="text-muted-foreground">
+                    <div className="font-medium text-white">Sugerido/mês</div>
+                    <div className="text-slate-300">
                       {formatCurrency(goal.suggestedMonthlyContribution)}
                     </div>
                   </div>
@@ -159,8 +159,8 @@ export function MonthlyGoalsProgress({
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-orange-600" />
                   <div>
-                    <div className="font-medium">Prazo</div>
-                    <div className="text-muted-foreground">
+                    <div className="font-medium text-white">Prazo</div>
+                    <div className="text-slate-300">
                       {format(new Date(goal.endDate), 'MMM/yyyy', { locale: ptBR })}
                     </div>
                   </div>

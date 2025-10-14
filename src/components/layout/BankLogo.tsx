@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils';
 // Bank Logos
 const BradescoSimplifiedLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" {...props}>
-    <rect x="2" y="4" width="20" height="16" rx="2" fill="#8B0000" />
-    <g stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" fill="#660000" />
+    <g stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 17V7" />
       <path d="M15 17V7" />
       <path d="M7 7C7 5.00004 9.5 4 12 4C14.5 4 17 5.00004 17 7" />

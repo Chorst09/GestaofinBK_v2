@@ -78,10 +78,10 @@ export function MonthlyTrendsChart({ transactions, currentMonth }: MonthlyTrends
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background border rounded-lg p-3 shadow-lg">
-          <p className="font-medium mb-2">{label}</p>
+        <div className="bg-slate-700 border border-slate-600 rounded-lg p-3 shadow-lg">
+          <p className="font-medium mb-2 text-white">{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
+            <p key={index} className="text-sm text-white" style={{ color: entry.color }}>
               {entry.name}: {formatCurrency(entry.value)}
             </p>
           ))}
@@ -92,9 +92,9 @@ export function MonthlyTrendsChart({ transactions, currentMonth }: MonthlyTrends
   };
 
   return (
-    <Card>
+    <Card className="bg-slate-800 text-white border-slate-700">
       <CardHeader>
-        <CardTitle className="font-headline">Tendência dos Últimos 6 Meses</CardTitle>
+        <CardTitle className="font-headline text-white">Tendência dos Últimos 6 Meses</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-80">
