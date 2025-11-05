@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useForecasts } from '@/hooks/useForecasts';
-import { useCreditCards } from '@/hooks/useCreditCards'; 
+import { useCreditCards } from '@/hooks/useCreditCards';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -51,6 +51,8 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { ForecastedCardSpendingChart } from '@/components/forecasts/forecasted-card-spending-chart';
 import { ForecastedCategorySpendingChart } from '@/components/forecasts/forecasted-category-spending-chart';
+import { PredictionsCard } from '@/components/forecasts/predictions-card';
+import { PredictionsSummaryCard } from '@/components/forecasts/predictions-summary-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Calendar } from '@/components/ui/calendar';
@@ -65,7 +67,7 @@ export default function ForecastsPage() {
     updateForecastItem,
     deleteForecastItem,
   } = useForecasts();
-  const { getCreditCardById } = useCreditCards(); 
+  const { getCreditCardById } = useCreditCards();
 
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editingForecastItem, setEditingForecastItem] = React.useState<ForecastItem | null>(null);
@@ -112,10 +114,10 @@ export default function ForecastsPage() {
       const toDate = date.to ? endOfDay(date.to) : endOfDay(date.from);
       filtered = filtered.filter(item => {
         try {
-            const forecastDate = parseISO(item.date);
-            return forecastDate >= fromDate && forecastDate <= toDate;
+          const forecastDate = parseISO(item.date);
+          return forecastDate >= fromDate && forecastDate <= toDate;
         } catch {
-            return false;
+          return false;
         }
       });
     }
@@ -151,24 +153,24 @@ export default function ForecastsPage() {
     const isCreditCardInstallment = (item: ForecastItem) => item.type === 'expense' && item.installmentId !== undefined && item.installmentId !== null && getCategoryByName(item.category)?.isCreditCard;
     return filteredForecastItems.filter(isCreditCardInstallment);
   }, [date, selectedCategories, forecastItems]);
-  
+
   // Calculate totals for the filtered items
   const { income, expenses, balance, cardExpenses } = React.useMemo(() => {
     let income = 0;
     let expenses = 0;
     let cardExpenses = 0;
-    
+
     filteredForecastItems.forEach(item => {
- if (item.type === 'income') {
- income += item.amount;
+      if (item.type === 'income') {
+        income += item.amount;
       } else {
- expenses += Math.abs(item.amount);
- if (item.category === creditCardCategoryName) {
- cardExpenses += Math.abs(item.amount);
+        expenses += Math.abs(item.amount);
+        if (item.category === creditCardCategoryName) {
+          cardExpenses += Math.abs(item.amount);
         }
       }
     });
-    
+
     return { income, expenses, balance: income - expenses, cardExpenses };
   }, [filteredForecastItems, creditCardCategoryName]);
 
@@ -184,10 +186,10 @@ export default function ForecastsPage() {
   }, [creditCardInstallmentItems]); // Depend on creditCardInstallmentItems
 
   const chartData = React.useMemo(() => [{
-      name: hasFilters ? 'Período/Filtros' : 'Previsões Gerais',
-      receitas: income,
-      despesas: expenses,
-    },
+    name: hasFilters ? 'Período/Filtros' : 'Previsões Gerais',
+    receitas: income,
+    despesas: expenses,
+  },
   ], [income, expenses, hasFilters]);
 
   const chartConfig = React.useMemo(() => ({
@@ -256,7 +258,7 @@ export default function ForecastsPage() {
               <div className="text-2xl font-bold font-headline text-destructive">
                 R$ {expenses.toFixed(2)}
               </div>
-               <p className="text-xs text-muted-foreground pt-1">
+              <p className="text-xs text-muted-foreground pt-1">
                 {hasFilters ? 'Soma das previsões no período/filtros.' : 'Soma de todas as previsões de despesa.'}
               </p>
             </CardContent>
@@ -288,68 +290,74 @@ export default function ForecastsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle className="font-headline">Comparativo: Receitas vs. Despesas</CardTitle>
-                <CardDescription>
-                  {hasFilters ? `Visualização das previsões para o período/filtros selecionados.` : 'Visualização geral das suas previsões.'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2">
-                {(income > 0 || expenses > 0) ? (
-                  <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart accessibilityLayer data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="name"
-                          tickLine={false}
-                          tickMargin={10}
-                          axisLine={false}
-                        />
-                        <YAxis
-                          tickFormatter={(value) => {
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="font-headline">Comparativo: Receitas vs. Despesas</CardTitle>
+              <CardDescription>
+                {hasFilters ? `Visualização das previsões para o período/filtros selecionados.` : 'Visualização geral das suas previsões.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              {(income > 0 || expenses > 0) ? (
+                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart accessibilityLayer data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="name"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        tickFormatter={(value) => {
+                          const numValue = Number(value);
+                          if (isNaN(numValue)) return 'R$ 0k';
+                          return `R$ ${(numValue || 0) / 1000}k`;
+                        }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                        domain={[0, (dataMax: number) => Math.max(Number(dataMax) || 0, income, expenses) + 100]}
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                          formatter={(value, name) => {
                             const numValue = Number(value);
-                            if (isNaN(numValue)) return 'R$ 0k';
-                            return `R$ ${(numValue || 0) / 1000}k`;
+                            const formattedValue = isNaN(numValue) ? '0.00' : (numValue || 0).toFixed(2);
+                            return (
+                              <div className="flex flex-col">
+                                <span className="capitalize text-sm font-medium">{name === 'receitas' ? 'Receitas Previstas' : 'Despesas Previstas'}</span>
+                                <span className="text-sm text-muted-foreground">R$ {formattedValue}</span>
+                              </div>
+                            );
                           }}
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={10}
-                          domain={[0, (dataMax: number) => Math.max(Number(dataMax) || 0, income, expenses) + 100]}
-                        />
-                        <ChartTooltip
-                          cursor={false}
-                          content={<ChartTooltipContent
-                            formatter={(value, name) => {
-                              const numValue = Number(value);
-                              const formattedValue = isNaN(numValue) ? '0.00' : (numValue || 0).toFixed(2);
-                              return (
-                                <div className="flex flex-col">
-                                  <span className="capitalize text-sm font-medium">{name === 'receitas' ? 'Receitas Previstas' : 'Despesas Previstas'}</span>
-                                  <span className="text-sm text-muted-foreground">R$ {formattedValue}</span>
-                                </div>
-                              );
-                            }}
-                          />}
-                        />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Bar dataKey="receitas" fill="var(--color-receitas)" radius={4} />
-                        <Bar dataKey="despesas" fill="var(--color-despesas)" radius={4} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                     {hasFilters ? 'Nenhuma previsão no período/filtros para exibir gráfico.' : 'Nenhuma previsão registrada para exibir o gráfico.'}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            
-            <ForecastedCardSpendingChart forecastItems={filteredForecastItems} />
-            <ForecastedCategorySpendingChart forecastItems={filteredForecastItems} />
+                        />}
+                      />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="receitas" fill="var(--color-receitas)" radius={4} />
+                      <Bar dataKey="despesas" fill="var(--color-despesas)" radius={4} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  {hasFilters ? 'Nenhuma previsão no período/filtros para exibir gráfico.' : 'Nenhuma previsão registrada para exibir o gráfico.'}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <ForecastedCardSpendingChart forecastItems={filteredForecastItems} />
+          <ForecastedCategorySpendingChart forecastItems={filteredForecastItems} />
         </div>
+      </div>
+
+      {/* Cards de Previsões Independentes */}
+      <div className="space-y-6">
+        <PredictionsSummaryCard />
+        <PredictionsCard />
       </div>
 
       <div className="space-y-6">
@@ -386,53 +394,53 @@ export default function ForecastsPage() {
             <CardDescription>Visualize e gerencie seus itens de previsão de receitas e despesas.</CardDescription>
           </CardHeader>
           <CardContent>
- <div className="flex flex-wrap items-center gap-4 mb-4">
- <div className="flex items-center space-x-2">
- <Button variant="outline" size="icon" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
- <ChevronLeftIcon className="h-4 w-4" />
- <span className="sr-only">Mês anterior</span>
- </Button>
- <span className="text-lg font-semibold font-headline min-w-[120px] text-center">
- {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
- </span>
- <Button variant="outline" size="icon" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
- <ChevronRightIcon className="h-4 w-4" />
- <span className="sr-only">Próximo mês</span>
- </Button>
- {/* Popover for date picker could go here if needed, currently not implemented */}
- {/* <Popover></Popover> */}
- </div>
+            <div className="flex flex-wrap items-center gap-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="icon" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
+                  <ChevronLeftIcon className="h-4 w-4" />
+                  <span className="sr-only">Mês anterior</span>
+                </Button>
+                <span className="text-lg font-semibold font-headline min-w-[120px] text-center">
+                  {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
+                </span>
+                <Button variant="outline" size="icon" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
+                  <ChevronRightIcon className="h-4 w-4" />
+                  <span className="sr-only">Próximo mês</span>
+                </Button>
+                {/* Popover for date picker could go here if needed, currently not implemented */}
+                {/* <Popover></Popover> */}
+              </div>
 
-                <Button variant="outline" size="sm" onClick={() => setDatePreset('this_month')}>Este Mês</Button>
-                <Button variant="outline" size="sm" onClick={() => setDatePreset('last_month')}>Mês Passado</Button>
-                <Button variant="outline" size="sm" onClick={() => setDatePreset('this_year')}>Este Ano</Button>
-                 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                            <Filter className="mr-2 h-4 w-4" />
-                            Categorias
-                            {selectedCategories.size > 0 && <Badge variant="secondary" className="ml-2">{selectedCategories.size}</Badge>}
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="start">
-                        <DropdownMenuLabel>Filtrar por Categoria</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {TRANSACTION_CATEGORIES.filter(c => c.type !== 'general').map(category => (
-                             <DropdownMenuCheckboxItem
-                                key={category.name}
-                                checked={selectedCategories.has(category.name)}
-                                onCheckedChange={(checked) => handleCategoryChange(category.name, !!checked)}
-                            >
-                                {category.name}
-                            </DropdownMenuCheckboxItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset('this_month')}>Este Mês</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset('last_month')}>Mês Passado</Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset('this_year')}>Este Ano</Button>
 
-                {hasFilters && (
-                    <Button variant="ghost" onClick={() => { setSelectedMonth(startOfMonth(new Date())); setSelectedCategories(new Set()); }}>Limpar Filtros</Button>
-                )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Categorias
+                    {selectedCategories.size > 0 && <Badge variant="secondary" className="ml-2">{selectedCategories.size}</Badge>}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="start">
+                  <DropdownMenuLabel>Filtrar por Categoria</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {TRANSACTION_CATEGORIES.filter(c => c.type !== 'general').map(category => (
+                    <DropdownMenuCheckboxItem
+                      key={category.name}
+                      checked={selectedCategories.has(category.name)}
+                      onCheckedChange={(checked) => handleCategoryChange(category.name, !!checked)}
+                    >
+                      {category.name}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {hasFilters && (
+                <Button variant="ghost" onClick={() => { setSelectedMonth(startOfMonth(new Date())); setSelectedCategories(new Set()); }}>Limpar Filtros</Button>
+              )}
             </div>
 
             {filteredForecastItems.length === 0 ? (
@@ -467,7 +475,7 @@ export default function ForecastsPage() {
                       console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
                     }
                     const itemAmount = Number(item.amount) || 0;
-                    
+
                     let cardDetailsElement = <span className="text-muted-foreground">-</span>;
                     const categoryConfig = getCategoryByName(item.category);
 
@@ -485,15 +493,15 @@ export default function ForecastsPage() {
                           cardDetailsElement = <span className="text-xs text-muted-foreground">Cartão não encontrado</span>;
                         }
                       } else if (item.explicitBankName) {
-                         cardDetailsElement = (
-                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                              <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                              {item.explicitBankName} (Manual)
-                            </Badge>
-                          );
+                        cardDetailsElement = (
+                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                            <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
+                            {item.explicitBankName} (Manual)
+                          </Badge>
+                        );
                       }
                     }
-                    
+
                     const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
 
                     return (
@@ -519,8 +527,8 @@ export default function ForecastsPage() {
                             <span className="sr-only">Editar</span>
                           </Button>
                           <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteConfirmation(item)}>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Excluir</span>
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -535,7 +543,7 @@ export default function ForecastsPage() {
                         <div className="flex flex-col gap-1 items-end">
                           <span className="text-accent-foreground text-base">R$ {income.toFixed(2)}</span>
                           <span className="text-destructive text-base">- R$ {expenses.toFixed(2)}</span>
-                          <Separator className="my-1"/>
+                          <Separator className="my-1" />
                           <span className={`text-lg ${balance >= 0 ? 'text-accent-foreground' : 'text-destructive'}`}>
                             R$ {balance.toFixed(2)}
                           </span>
@@ -550,7 +558,7 @@ export default function ForecastsPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* New section for Credit Card Installment Forecasts */}
       <div className="space-y-6">
         <Card>
@@ -591,7 +599,7 @@ export default function ForecastsPage() {
                         console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
                       }
                       const itemAmount = Number(item.amount) || 0;
-                      
+
                       let cardDetailsElement = <span className="text-muted-foreground">-</span>;
                       const categoryConfig = getCategoryByName(item.category);
 
@@ -609,15 +617,15 @@ export default function ForecastsPage() {
                             cardDetailsElement = <span className="text-xs text-muted-foreground\">Cartão não encontrado</span>;
                           }
                         } else if (item.explicitBankName) {
-                           cardDetailsElement = (
-                              <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                                <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                                {item.explicitBankName} (Manual)
-                              </Badge>
-                            );
+                          cardDetailsElement = (
+                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                              <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
+                              {item.explicitBankName} (Manual)
+                            </Badge>
+                          );
                         }
                       }
-                      
+
                       const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
 
                       return (
@@ -661,32 +669,32 @@ export default function ForecastsPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             {deleteTarget?.installmentId ? (
-                <>
-                    <AlertDialogTitle>Confirmar Exclusão de Parcela</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Este item faz parte de uma compra parcelada. Deseja excluir apenas esta parcela ou esta e todas as parcelas futuras?
-                    </AlertDialogDescription>
-                </>
+              <>
+                <AlertDialogTitle>Confirmar Exclusão de Parcela</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Este item faz parte de uma compra parcelada. Deseja excluir apenas esta parcela ou esta e todas as parcelas futuras?
+                </AlertDialogDescription>
+              </>
             ) : (
-                <>
-                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Tem certeza que deseja excluir este item de previsão? Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                </>
+              <>
+                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir este item de previsão? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </>
             )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancelar</AlertDialogCancel>
             {deleteTarget?.installmentId ? (
-                <>
-                    <AlertDialogAction onClick={() => executeDelete(false)}>Excluir Somente Esta</AlertDialogAction>
-                    <AlertDialogAction onClick={() => executeDelete(true)} className="bg-destructive hover:bg-destructive/90">Excluir Todas Futuras</AlertDialogAction>
-                </>
+              <>
+                <AlertDialogAction onClick={() => executeDelete(false)}>Excluir Somente Esta</AlertDialogAction>
+                <AlertDialogAction onClick={() => executeDelete(true)} className="bg-destructive hover:bg-destructive/90">Excluir Todas Futuras</AlertDialogAction>
+              </>
             ) : (
-                 <AlertDialogAction onClick={() => executeDelete(false)} className="bg-destructive hover:bg-destructive/90">
-                    Excluir
-                </AlertDialogAction>
+              <AlertDialogAction onClick={() => executeDelete(false)} className="bg-destructive hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
             )}
           </AlertDialogFooter>
         </AlertDialogContent>
