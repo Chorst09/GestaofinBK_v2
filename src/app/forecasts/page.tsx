@@ -37,7 +37,7 @@ import { ForecastForm } from '@/components/forecasts/forecast-form';
 import type { ForecastItem, CreditCard as CreditCardType } from '@/lib/types';
 import { format, parseISO, startOfMonth, subMonths, startOfYear, endOfYear, startOfDay, endOfDay, endOfMonth, addMonths, endOfMonth as endOfMonthFns } from 'date-fns';
 import { ptBR } from 'date-fns/locale'; // Keep only one import for ptBR
-import { PlusCircle, Edit, Trash2, Scale, Landmark, DollarSign, CreditCard as CreditCardIconLucide, CalendarIcon, Filter, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Scale, Landmark, DollarSign, CreditCard as CreditCardIconLucide, CalendarIcon, Filter, ChevronLeftIcon, ChevronRightIcon, TrendingUp } from 'lucide-react';
 import { getCategoryIcon, getCategoryByName, TRANSACTION_CATEGORIES } from '@/components/transactions/categories';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -149,10 +149,27 @@ export default function ForecastsPage() {
     return { totalIncome, totalExpenses, totalBalance: totalIncome - totalExpenses };
   }, [forecastItems]);
 
-  const creditCardInstallmentItems = React.useMemo(() => { // This should filter from filteredForecastItems
+  // Separar diferentes tipos de previsões
+  const creditCardInstallmentItems = React.useMemo(() => {
     const isCreditCardInstallment = (item: ForecastItem) => item.type === 'expense' && item.installmentId !== undefined && item.installmentId !== null && getCategoryByName(item.category)?.isCreditCard;
     return filteredForecastItems.filter(isCreditCardInstallment);
-  }, [date, selectedCategories, forecastItems]);
+  }, [filteredForecastItems]);
+
+  const otherExpenseItems = React.useMemo(() => {
+    const isOtherExpense = (item: ForecastItem) => {
+      if (item.type !== 'expense') return false;
+      // Excluir compras parceladas no cartão
+      const categoryConfig = getCategoryByName(item.category);
+      const isInstallment = item.installmentId !== undefined && item.installmentId !== null;
+      if (categoryConfig?.isCreditCard && isInstallment) return false;
+      return true;
+    };
+    return filteredForecastItems.filter(isOtherExpense);
+  }, [filteredForecastItems]);
+
+  const incomeItems = React.useMemo(() => {
+    return filteredForecastItems.filter(item => item.type === 'income');
+  }, [filteredForecastItems]);
 
   // Calculate totals for the filtered items
   const { income, expenses, balance, cardExpenses } = React.useMemo(() => {
@@ -174,16 +191,39 @@ export default function ForecastsPage() {
     return { income, expenses, balance: income - expenses, cardExpenses };
   }, [filteredForecastItems, creditCardCategoryName]);
 
-  const totalCreditCardInstallments = React.useMemo(() => {
-    let cardInstallmentTotal: number = 0; // Initialize as number
+  // Calcular totais por seção
+  const sectionTotals = React.useMemo(() => {
+    let cardInstallmentTotal = 0;
+    let otherExpensesTotal = 0;
+    let incomeTotal = 0;
+
     creditCardInstallmentItems.forEach(item => {
-      const amount = Number(item.amount); // Ensure amount is a number
-      if (!isNaN(amount)) { // Check if it's a valid number
+      const amount = Number(item.amount);
+      if (!isNaN(amount)) {
         cardInstallmentTotal += Math.abs(amount);
       }
     });
-    return cardInstallmentTotal; // Return the calculated total
-  }, [creditCardInstallmentItems]); // Depend on creditCardInstallmentItems
+
+    otherExpenseItems.forEach(item => {
+      const amount = Number(item.amount);
+      if (!isNaN(amount)) {
+        otherExpensesTotal += Math.abs(amount);
+      }
+    });
+
+    incomeItems.forEach(item => {
+      const amount = Number(item.amount);
+      if (!isNaN(amount)) {
+        incomeTotal += Math.abs(amount);
+      }
+    });
+
+    return {
+      cardInstallmentTotal,
+      otherExpensesTotal,
+      incomeTotal
+    };
+  }, [creditCardInstallmentItems, otherExpenseItems, incomeItems]);
 
   const chartData = React.useMemo(() => [{
     name: hasFilters ? 'Período/Filtros' : 'Previsões Gerais',
@@ -228,6 +268,119 @@ export default function ForecastsPage() {
     deleteForecastItem(deleteTarget.id, deleteAllRelated);
     toast({ title: "Previsão excluída", description: "O item de previsão foi removido com sucesso." });
     setDeleteTarget(null);
+  };
+
+  // Função auxiliar para renderizar tabela de previsões
+  const renderForecastTable = (items: ForecastItem[], emptyMessage: string, total?: number) => {
+    if (items.length === 0) {
+      return (
+        <p className="text-center text-muted-foreground py-8">
+          {emptyMessage}
+        </p>
+      );
+    }
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Mês/Ano</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Categoria</TableHead>
+            <TableHead>Cartão/Banco Associado</TableHead>
+            <TableHead className="text-right">Valor Previsto</TableHead>
+            <TableHead>Fixo?</TableHead>
+            <TableHead className="text-center">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {items.map((item) => {
+            const Icon = getCategoryIcon(item.category);
+            let formattedDate = 'Data inválida';
+            try {
+              const dateStr = String(item.date);
+              const parsedDate = parseISO(dateStr);
+              if (!isNaN(parsedDate.getTime())) {
+                const displayDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
+                formattedDate = format(displayDate, 'MMMM yyyy', { locale: ptBR });
+              }
+            } catch (e) {
+              console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
+            }
+            const itemAmount = Number(item.amount) || 0;
+
+            let cardDetailsElement = <span className="text-muted-foreground">-</span>;
+            const categoryConfig = getCategoryByName(item.category);
+
+            if (item.type === 'expense' && categoryConfig?.isCreditCard) {
+              if (item.creditCardId) {
+                const card = getCreditCardById(item.creditCardId);
+                if (card) {
+                  cardDetailsElement = (
+                    <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                      <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
+                      {card.bankName} ({card.cardFlag})
+                    </Badge>
+                  );
+                } else {
+                  cardDetailsElement = <span className="text-xs text-muted-foreground">Cartão não encontrado</span>;
+                }
+              } else if (item.explicitBankName) {
+                cardDetailsElement = (
+                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                    <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
+                    {item.explicitBankName} (Manual)
+                  </Badge>
+                );
+              }
+            }
+
+            const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
+
+            return (
+              <TableRow key={item.id}>
+                <TableCell>{formattedDate}</TableCell>
+                <TableCell>{item.description}{isInstallment ? <span className="text-muted-foreground ml-1">{`(${item.currentInstallment}/${item.totalInstallments})`}</span> : ''}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                    <Icon className="h-3 w-3" />
+                    {item.category}
+                  </Badge>
+                </TableCell>
+                <TableCell>{cardDetailsElement}</TableCell>
+                <TableCell className={`text-right font-medium ${itemAmount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
+                  R$ {Math.abs(itemAmount).toFixed(2)}
+                </TableCell>
+                <TableCell>
+                  {item.type === 'expense' && item.isFixed ? 'Sim' : 'Não'}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(item)} className="mr-2">
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Editar</span>
+                  </Button>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteConfirmation(item)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Excluir</span>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+        {total !== undefined && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} className="text-right font-bold text-lg">Total da Seção</TableCell>
+              <TableCell className="text-right font-bold text-base">
+                R$ {total.toFixed(2)}
+              </TableCell>
+              <TableCell colSpan={2}></TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    );
   };
 
   return (
@@ -360,22 +513,23 @@ export default function ForecastsPage() {
         <PredictionsCard />
       </div>
 
-      <div className="space-y-6">
+      {/* Seção de Gerenciamento - Cabeçalho Global */}
+      <div className="space-y-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h2 className="text-2xl font-headline font-semibold">Gerenciar Itens de Previsão</h2>
+          <h2 className="text-2xl font-headline font-semibold">Gerenciar Previsões por Categoria</h2>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenFormForAdd} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Novo Item de Previsão
+                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Previsão
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-headline">
-                  {editingForecastItem ? 'Editar Item de Previsão' : 'Adicionar Novo Item de Previsão'}
+                  {editingForecastItem ? 'Editar Previsão' : 'Adicionar Nova Previsão'}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingForecastItem ? 'Atualize os detalhes do item de previsão.' : 'Preencha os detalhes do novo item de previsão.'}
+                  {editingForecastItem ? 'Atualize os detalhes da previsão.' : 'Preencha os detalhes da nova previsão.'}
                 </DialogDescription>
               </DialogHeader>
               <ForecastForm
@@ -388,10 +542,16 @@ export default function ForecastsPage() {
           </Dialog>
         </div>
 
+        {/* Seção 1: Receitas Previstas */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Lista Detalhada de Previsões</CardTitle>
-            <CardDescription>Visualize e gerencie seus itens de previsão de receitas e despesas.</CardDescription>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              Receitas Previstas
+            </CardTitle>
+            <CardDescription>
+              Visualize e gerencie suas previsões de receitas e entradas financeiras.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap items-center gap-4 mb-4">
@@ -407,8 +567,6 @@ export default function ForecastsPage() {
                   <ChevronRightIcon className="h-4 w-4" />
                   <span className="sr-only">Próximo mês</span>
                 </Button>
-                {/* Popover for date picker could go here if needed, currently not implemented */}
-                {/* <Popover></Popover> */}
               </div>
 
               <Button variant="outline" size="sm" onClick={() => setDatePreset('this_month')}>Este Mês</Button>
@@ -443,223 +601,50 @@ export default function ForecastsPage() {
               )}
             </div>
 
-            {filteredForecastItems.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                {hasFilters ? 'Nenhuma previsão encontrada para o período/filtros selecionados.' : 'Nenhum item de previsão registrado ainda.'}
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mês/Ano</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Cartão/Banco Associado</TableHead>
-                    <TableHead className="text-right">Valor Previsto</TableHead>
-                    <TableHead>Fixo?</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredForecastItems.map((item) => {
-                    const Icon = getCategoryIcon(item.category);
-                    let formattedDate = 'Data inválida';
-                    try {
-                      const dateStr = String(item.date);
-                      const parsedDate = parseISO(dateStr);
-                      if (!isNaN(parsedDate.getTime())) {
-                        const displayDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
-                        formattedDate = format(displayDate, 'MMMM yyyy', { locale: ptBR });
-                      }
-                    } catch (e) {
-                      console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
-                    }
-                    const itemAmount = Number(item.amount) || 0;
-
-                    let cardDetailsElement = <span className="text-muted-foreground">-</span>;
-                    const categoryConfig = getCategoryByName(item.category);
-
-                    if (item.type === 'expense' && categoryConfig?.isCreditCard) {
-                      if (item.creditCardId) {
-                        const card = getCreditCardById(item.creditCardId);
-                        if (card) {
-                          cardDetailsElement = (
-                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                              <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                              {card.bankName} ({card.cardFlag})
-                            </Badge>
-                          );
-                        } else {
-                          cardDetailsElement = <span className="text-xs text-muted-foreground">Cartão não encontrado</span>;
-                        }
-                      } else if (item.explicitBankName) {
-                        cardDetailsElement = (
-                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                            <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                            {item.explicitBankName} (Manual)
-                          </Badge>
-                        );
-                      }
-                    }
-
-                    const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
-
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>{formattedDate}</TableCell>
-                        <TableCell>{item.description}{isInstallment ? <span className="text-muted-foreground ml-1">{`(${item.currentInstallment}/${item.totalInstallments})`}</span> : ''}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                            <Icon className="h-3 w-3" />
-                            {item.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{cardDetailsElement}</TableCell>
-                        <TableCell className={`text-right font-medium ${itemAmount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
-                          R$ {Math.abs(itemAmount).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          {item.type === 'expense' && item.isFixed ? 'Sim' : 'Não'}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(item)} className="mr-2">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Editar</span>
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteConfirmation(item)}>
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Excluir</span>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-                {hasFilters && (
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-right font-bold text-lg">Totais do Período</TableCell>
-                      <TableCell className="text-right font-bold">
-                        <div className="flex flex-col gap-1 items-end">
-                          <span className="text-accent-foreground text-base">R$ {income.toFixed(2)}</span>
-                          <span className="text-destructive text-base">- R$ {expenses.toFixed(2)}</span>
-                          <Separator className="my-1" />
-                          <span className={`text-lg ${balance >= 0 ? 'text-accent-foreground' : 'text-destructive'}`}>
-                            R$ {balance.toFixed(2)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell colSpan={2}></TableCell>
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
+            {renderForecastTable(
+              incomeItems,
+              hasFilters ? 'Nenhuma receita encontrada para o período/filtros selecionados.' : 'Nenhuma receita registrada ainda.',
+              sectionTotals.incomeTotal
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* New section for Credit Card Installment Forecasts */}
-      <div className="space-y-6">
+        {/* Seção 2: Outras Despesas (Moradia, Financiamento, etc.) */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Previsões de Compras Parceladas no Cartão</CardTitle>
-            <CardDescription>Visualize e gerencie suas previsões de despesas parceladas no cartão de crédito.</CardDescription>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-blue-600" />
+              Outras Despesas
+            </CardTitle>
+            <CardDescription>
+              Despesas gerais como moradia, financiamento, contas fixas e outras categorias.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            {creditCardInstallmentItems.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                {hasFilters ? 'Nenhuma previsão de compra parcelada no cartão encontrada para o período/filtros selecionados.' : 'Nenhum item de previsão de compra parcelada no cartão registrado ainda.'}
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mês/Ano</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Cartão Associado</TableHead>
-                    <TableHead className="text-right">Valor Previsto</TableHead>
-                    <TableHead className="text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {creditCardInstallmentItems
-                    .map((item) => {
-                      const Icon = getCategoryIcon(item.category);
-                      let formattedDate = 'Data inválida';
-                      try {
-                        const dateStr = String(item.date);
-                        const parsedDate = parseISO(dateStr);
-                        if (!isNaN(parsedDate.getTime())) {
-                          const displayDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
-                          formattedDate = format(displayDate, 'MMMM yyyy', { locale: ptBR });
-                        }
-                      } catch (e) {
-                        console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
-                      }
-                      const itemAmount = Number(item.amount) || 0;
+            {renderForecastTable(
+              otherExpenseItems,
+              hasFilters ? 'Nenhuma despesa encontrada para o período/filtros selecionados.' : 'Nenhuma despesa registrada ainda.',
+              sectionTotals.otherExpensesTotal
+            )}
+          </CardContent>
+        </Card>
 
-                      let cardDetailsElement = <span className="text-muted-foreground">-</span>;
-                      const categoryConfig = getCategoryByName(item.category);
-
-                      if (item.type === 'expense' && categoryConfig?.isCreditCard) {
-                        if (item.creditCardId) {
-                          const card = getCreditCardById(item.creditCardId);
-                          if (card) {
-                            cardDetailsElement = (
-                              <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                                <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                                {card.bankName} ({card.cardFlag})
-                              </Badge>
-                            );
-                          } else {
-                            cardDetailsElement = <span className="text-xs text-muted-foreground\">Cartão não encontrado</span>;
-                          }
-                        } else if (item.explicitBankName) {
-                          cardDetailsElement = (
-                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                              <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                              {item.explicitBankName} (Manual)
-                            </Badge>
-                          );
-                        }
-                      }
-
-                      const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
-
-                      return (
-                        <TableRow key={item.id}>
-                          <TableCell>{formattedDate}</TableCell>
-                          <TableCell>{item.description}{isInstallment ? <span className="text-muted-foreground ml-1">{`(${item.currentInstallment}/${item.totalInstallments})`}</span> : ''}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                              <Icon className="h-3 w-3" />
-                              {item.category}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{cardDetailsElement}</TableCell>
-                          <TableCell className={`text-right font-medium ${itemAmount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
-                            R$ {Math.abs(itemAmount).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(item)} className="mr-2"><Edit className="h-4 w-4" /><span className="sr-only">Editar</span></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteConfirmation(item)}><Trash2 className="h-4 w-4" /><span className="sr-only">Excluir</span></Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-                {creditCardInstallmentItems.length > 0 && (
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-right font-bold text-lg">Total Parcelado</TableCell>
-                      <TableCell className="text-right font-bold text-destructive text-base">R$ {totalCreditCardInstallments.toFixed(2)}</TableCell>
-                      <TableCell colSpan={1}></TableCell> {/* Span the remaining columns */}
-                    </TableRow>
-                  </TableFooter>
-                )}
-              </Table>
+        {/* Seção 3: Compras Parceladas no Cartão */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <CreditCardIconLucide className="h-5 w-5 text-purple-600" />
+              Compras Parceladas no Cartão
+            </CardTitle>
+            <CardDescription>
+              Visualize e gerencie suas previsões de despesas parceladas no cartão de crédito.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {renderForecastTable(
+              creditCardInstallmentItems,
+              hasFilters ? 'Nenhuma compra parcelada encontrada para o período/filtros selecionados.' : 'Nenhuma compra parcelada registrada ainda.',
+              sectionTotals.cardInstallmentTotal
             )}
           </CardContent>
         </Card>
