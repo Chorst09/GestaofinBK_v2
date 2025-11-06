@@ -34,19 +34,24 @@ export default function RootLayout({
             <AppSidebar />
           </Sidebar>
           <SidebarInset>
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background px-3 sm:h-16 sm:gap-4 sm:px-6 md:static md:border-0 md:bg-transparent">
               <SidebarTrigger className="md:hidden" />
               <div className="flex items-center gap-2 md:hidden">
-                <Link href="/" className="flex items-center gap-2 font-headline text-lg font-semibold text-primary">
-                  <Package2 className="h-6 w-6" />
-                  <span>Finanças Zen</span>
+                <Link href="/" className="flex items-center gap-2 font-headline text-base font-semibold text-primary sm:text-lg">
+                  <Package2 className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="hidden xs:inline">Finanças Zen</span>
                 </Link>
               </div>
-              <div className="flex flex-1 items-center justify-end gap-4">
-                <ThemeToggle />
+              <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
+                <div className="md:hidden">
+                  <ThemeToggle />
+                </div>
+                <div className="hidden md:block">
+                  <ThemeToggle />
+                </div>
               </div>
             </header>
-            <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 overflow-auto">
+            <main className="flex flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4 md:gap-6 md:px-6 md:py-4 lg:gap-8 overflow-auto">
               {children}
             </main>
             <Toaster />

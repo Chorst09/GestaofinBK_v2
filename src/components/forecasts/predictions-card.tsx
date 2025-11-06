@@ -148,48 +148,48 @@ export function PredictionsCard() {
 
     return (
         <Card className="w-full">
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="font-headline flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5 text-primary" />
+            <CardHeader className="pb-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
+                            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                             Previsões de Gastos
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-sm">
                             Configure suas previsões de gastos semanais, final de semana, alimentação e combustível
                         </CardDescription>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 self-start sm:self-center">
                         {isEditing ? (
                             <>
-                                <Button size="sm" onClick={handleSave} className="gap-1">
-                                    <Save className="h-4 w-4" />
-                                    Salvar
+                                <Button size="sm" onClick={handleSave} className="gap-1 text-xs sm:text-sm">
+                                    <Save className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    <span className="hidden xs:inline">Salvar</span>
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={handleCancel} className="gap-1">
-                                    <X className="h-4 w-4" />
-                                    Cancelar
+                                <Button size="sm" variant="outline" onClick={handleCancel} className="gap-1 text-xs sm:text-sm">
+                                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    <span className="hidden xs:inline">Cancelar</span>
                                 </Button>
                             </>
                         ) : (
-                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} className="gap-1">
-                                <Edit2 className="h-4 w-4" />
-                                Editar
+                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} className="gap-1 text-xs sm:text-sm">
+                                <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span className="hidden xs:inline">Editar</span>
                             </Button>
                         )}
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-2">
                     {predictionItems.map((item, index) => {
                         const Icon = item.icon;
                         return (
-                            <div key={index} className={`p-4 rounded-lg border-2 ${item.bgColor}`}>
-                                <div className="flex items-center justify-between mb-2">
+                            <div key={index} className={`p-3 sm:p-4 rounded-lg border-2 ${item.bgColor}`}>
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex items-center gap-2">
                                         <Icon className={`h-4 w-4 ${item.color}`} />
-                                        <Label className={`font-semibold ${item.color}`}>{item.label}</Label>
+                                        <Label className={`font-semibold text-sm sm:text-base ${item.color}`}>{item.label}</Label>
                                     </div>
                                     {isEditing ? (
                                         <div className="relative">
@@ -222,17 +222,17 @@ export function PredictionsCard() {
                                                         handleCancel();
                                                     }
                                                 }}
-                                                className="w-32 h-9 text-right pl-8 pr-3 font-mono focus:ring-2 focus:ring-primary"
+                                                className="w-24 sm:w-32 h-8 sm:h-9 text-right pl-6 sm:pl-8 pr-2 sm:pr-3 font-mono text-sm focus:ring-2 focus:ring-primary"
                                                 placeholder="0,00"
                                             />
                                         </div>
                                     ) : (
-                                        <Badge variant="secondary" className="font-mono font-semibold bg-background text-foreground border px-3 py-1">
+                                        <Badge variant="secondary" className="font-mono font-semibold bg-background text-foreground border px-2 py-1 text-xs sm:text-sm sm:px-3">
                                             R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </Badge>
                                     )}
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium">{item.description}</p>
+                                <p className="text-xs text-muted-foreground font-medium mt-1">{item.description}</p>
                             </div>
                         );
                     })}

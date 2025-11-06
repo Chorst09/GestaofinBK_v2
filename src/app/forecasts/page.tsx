@@ -281,120 +281,135 @@ export default function ForecastsPage() {
     }
 
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Mês/Ano</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Cartão/Banco Associado</TableHead>
-            <TableHead className="text-right">Valor Previsto</TableHead>
-            <TableHead>Fixo?</TableHead>
-            <TableHead className="text-center">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => {
-            const Icon = getCategoryIcon(item.category);
-            let formattedDate = 'Data inválida';
-            try {
-              const dateStr = String(item.date);
-              const parsedDate = parseISO(dateStr);
-              if (!isNaN(parsedDate.getTime())) {
-                const displayDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
-                formattedDate = format(displayDate, 'MMMM yyyy', { locale: ptBR });
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[100px]">Mês/Ano</TableHead>
+              <TableHead className="min-w-[150px]">Descrição</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[120px]">Categoria</TableHead>
+              <TableHead className="hidden md:table-cell min-w-[150px]">Cartão/Banco</TableHead>
+              <TableHead className="text-right min-w-[100px]">Valor</TableHead>
+              <TableHead className="hidden lg:table-cell">Fixo?</TableHead>
+              <TableHead className="text-center min-w-[80px]">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => {
+              const Icon = getCategoryIcon(item.category);
+              let formattedDate = 'Data inválida';
+              try {
+                const dateStr = String(item.date);
+                const parsedDate = parseISO(dateStr);
+                if (!isNaN(parsedDate.getTime())) {
+                  const displayDate = new Date(parsedDate.getUTCFullYear(), parsedDate.getUTCMonth(), parsedDate.getUTCDate());
+                  formattedDate = format(displayDate, 'MMMM yyyy', { locale: ptBR });
+                }
+              } catch (e) {
+                console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
               }
-            } catch (e) {
-              console.error("Erro ao formatar data da previsão:", e, "Data original:", item.date);
-            }
-            const itemAmount = Number(item.amount) || 0;
+              const itemAmount = Number(item.amount) || 0;
 
-            let cardDetailsElement = <span className="text-muted-foreground">-</span>;
-            const categoryConfig = getCategoryByName(item.category);
+              let cardDetailsElement = <span className="text-muted-foreground">-</span>;
+              const categoryConfig = getCategoryByName(item.category);
 
-            if (item.type === 'expense' && categoryConfig?.isCreditCard) {
-              if (item.creditCardId) {
-                const card = getCreditCardById(item.creditCardId);
-                if (card) {
+              if (item.type === 'expense' && categoryConfig?.isCreditCard) {
+                if (item.creditCardId) {
+                  const card = getCreditCardById(item.creditCardId);
+                  if (card) {
+                    cardDetailsElement = (
+                      <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                        <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
+                        {card.bankName} ({card.cardFlag})
+                      </Badge>
+                    );
+                  } else {
+                    cardDetailsElement = <span className="text-xs text-muted-foreground">Cartão não encontrado</span>;
+                  }
+                } else if (item.explicitBankName) {
                   cardDetailsElement = (
                     <Badge variant="outline" className="flex items-center gap-1 w-fit">
                       <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                      {card.bankName} ({card.cardFlag})
+                      {item.explicitBankName} (Manual)
                     </Badge>
                   );
-                } else {
-                  cardDetailsElement = <span className="text-xs text-muted-foreground">Cartão não encontrado</span>;
                 }
-              } else if (item.explicitBankName) {
-                cardDetailsElement = (
-                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                    <CreditCardIconLucide className="h-3 w-3 text-muted-foreground" />
-                    {item.explicitBankName} (Manual)
-                  </Badge>
-                );
               }
-            }
 
-            const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
+              const isInstallment = item.installmentId && item.currentInstallment && item.totalInstallments;
 
-            return (
-              <TableRow key={item.id}>
-                <TableCell>{formattedDate}</TableCell>
-                <TableCell>{item.description}{isInstallment ? <span className="text-muted-foreground ml-1">{`(${item.currentInstallment}/${item.totalInstallments})`}</span> : ''}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                    <Icon className="h-3 w-3" />
-                    {item.category}
-                  </Badge>
+              return (
+                <TableRow key={item.id}>
+                  <TableCell className="text-xs sm:text-sm">{format(parseISO(String(item.date)), 'MMM/yy', { locale: ptBR })}</TableCell>
+                  <TableCell className="text-xs sm:text-sm">
+                    <div className="max-w-[150px] sm:max-w-none truncate">
+                      {item.description}
+                      {isInstallment && <span className="text-muted-foreground ml-1 text-xs">{`(${item.currentInstallment}/${item.totalInstallments})`}</span>}
+                    </div>
+                    <div className="sm:hidden mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        <Icon className="h-3 w-3 mr-1" />
+                        {item.category}
+                      </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <Badge variant="outline" className="flex items-center gap-1 w-fit text-xs">
+                      <Icon className="h-3 w-3" />
+                      {item.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-xs">{cardDetailsElement}</TableCell>
+                  <TableCell className={`text-right font-medium text-xs sm:text-sm ${itemAmount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
+                    R$ {Math.abs(itemAmount).toFixed(2)}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell text-xs">
+                    {item.type === 'expense' && item.isFixed ? 'Sim' : 'Não'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenFormForEdit(item)} className="h-8 w-8 p-0">
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive h-8 w-8 p-0" onClick={() => handleDeleteConfirmation(item)}>
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="sr-only">Excluir</span>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+          {total !== undefined && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={4} className="text-right font-bold text-lg">Total da Seção</TableCell>
+                <TableCell className="text-right font-bold text-base">
+                  R$ {total.toFixed(2)}
                 </TableCell>
-                <TableCell>{cardDetailsElement}</TableCell>
-                <TableCell className={`text-right font-medium ${itemAmount < 0 ? 'text-destructive' : 'text-accent-foreground bg-accent/30 rounded px-1 py-0.5'}`}>
-                  R$ {Math.abs(itemAmount).toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  {item.type === 'expense' && item.isFixed ? 'Sim' : 'Não'}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(item)} className="mr-2">
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Editar</span>
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteConfirmation(item)}>
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Excluir</span>
-                  </Button>
-                </TableCell>
+                <TableCell colSpan={2}></TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-        {total !== undefined && (
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={4} className="text-right font-bold text-lg">Total da Seção</TableCell>
-              <TableCell className="text-right font-bold text-base">
-                R$ {total.toFixed(2)}
-              </TableCell>
-              <TableCell colSpan={2}></TableCell>
-            </TableRow>
-          </TableFooter>
-        )}
-      </Table>
+            </TableFooter>
+          )}
+        </Table>
+      </div>
     );
   };
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-headline font-bold tracking-tight mb-6">Dashboard de Previsões</h1>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-headline font-bold tracking-tight mb-4 sm:mb-6">Dashboard de Previsões</h1>
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium font-body">Receitas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <Landmark className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium font-body">Receitas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
+              <Landmark className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-headline text-accent-foreground bg-accent/30 rounded px-2 py-1 w-fit">
+              <div className="text-lg sm:text-2xl font-bold font-headline text-accent-foreground bg-accent/30 rounded px-2 py-1 w-fit">
                 R$ {income.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground pt-1">
@@ -404,11 +419,11 @@ export default function ForecastsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium font-body">Despesas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium font-body">Despesas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-headline text-destructive">
+              <div className="text-lg sm:text-2xl font-bold font-headline text-destructive">
                 R$ {expenses.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground pt-1">
@@ -442,17 +457,17 @@ export default function ForecastsPage() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="md:col-span-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="font-headline">Comparativo: Receitas vs. Despesas</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-headline text-lg sm:text-xl">Comparativo: Receitas vs. Despesas</CardTitle>
+              <CardDescription className="text-sm">
                 {hasFilters ? `Visualização das previsões para o período/filtros selecionados.` : 'Visualização geral das suas previsões.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
               {(income > 0 || expenses > 0) ? (
-                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                <ChartContainer config={chartConfig} className="h-[200px] sm:h-[250px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart accessibilityLayer data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -508,15 +523,15 @@ export default function ForecastsPage() {
       </div>
 
       {/* Cards de Previsões Independentes */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <PredictionsSummaryCard />
         <PredictionsCard />
       </div>
 
       {/* Seção de Gerenciamento - Cabeçalho Global */}
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h2 className="text-2xl font-headline font-semibold">Gerenciar Previsões por Categoria</h2>
+          <h2 className="text-xl sm:text-2xl font-headline font-semibold">Gerenciar Previsões por Categoria</h2>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleOpenFormForAdd} className="w-full sm:w-auto">
@@ -545,8 +560,8 @@ export default function ForecastsPage() {
         {/* Seção 1: Receitas Previstas */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+            <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
               Receitas Previstas
             </CardTitle>
             <CardDescription>

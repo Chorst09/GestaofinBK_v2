@@ -203,39 +203,41 @@ export function PredictionsSummaryCard() {
 
     return (
         <Card className="w-full">
-            <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <CardTitle className="font-headline flex items-center gap-2">
-                            <BarChart3 className="h-5 w-5 text-primary" />
-                            Resumo Mensal de Previsões
-                        </CardTitle>
-                        <CardDescription>
-                            Comparativo mensal entre receitas previstas e todos os tipos de gastos
-                        </CardDescription>
-                    </div>
+            <CardHeader className="pb-4">
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
+                                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                                Resumo Mensal de Previsões
+                            </CardTitle>
+                            <CardDescription className="text-sm">
+                                Comparativo mensal entre receitas previstas e todos os tipos de gastos
+                            </CardDescription>
+                        </div>
 
-                    {/* Controles de Navegação Mensal */}
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <div className="text-center min-w-[140px]">
-                            <div className="font-semibold text-sm">
-                                {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
+                        {/* Controles de Navegação Mensal */}
+                        <div className="flex items-center gap-1 sm:gap-2 self-start sm:self-center">
+                            <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-8 w-8 p-0 sm:h-9 sm:w-9">
+                                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                            <div className="text-center min-w-[120px] sm:min-w-[140px]">
+                                <div className="font-semibold text-xs sm:text-sm">
+                                    {format(selectedMonth, 'MMM yyyy', { locale: ptBR })}
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={goToCurrentMonth}
+                                    className="text-xs h-auto p-1 text-muted-foreground hover:text-foreground hidden sm:block"
+                                >
+                                    Mês atual
+                                </Button>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={goToCurrentMonth}
-                                className="text-xs h-auto p-1 text-muted-foreground hover:text-foreground"
-                            >
-                                Mês atual
+                            <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-8 w-8 p-0 sm:h-9 sm:w-9">
+                                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                         </div>
-                        <Button variant="outline" size="sm" onClick={goToNextMonth}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         {summary.status === 'positive' ? (
@@ -247,18 +249,18 @@ export function PredictionsSummaryCard() {
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
                 {/* Cards de Resumo */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {summaryItems.map((item, index) => {
                         const Icon = item.icon;
                         return (
-                            <div key={index} className={`p-4 rounded-lg border-2 ${item.bgColor}`}>
+                            <div key={index} className={`p-3 sm:p-4 rounded-lg border-2 ${item.bgColor}`}>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Icon className={`h-4 w-4 ${item.color}`} />
-                                    <span className={`text-sm font-semibold ${item.color}`}>{item.label}</span>
+                                    <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${item.color}`} />
+                                    <span className={`text-xs sm:text-sm font-semibold ${item.color}`}>{item.label}</span>
                                 </div>
-                                <div className={`text-lg font-bold font-mono ${item.color}`}>
+                                <div className={`text-sm sm:text-lg font-bold font-mono ${item.color}`}>
                                     R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                             </div>
