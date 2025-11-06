@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Home, LayoutDashboard, List, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, LineChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SimpleThemeToggle } from '@/components/theme/theme-toggle';
 
 const navItems = [
   { href: '/', label: 'Página Principal', icon: Home },
@@ -34,7 +35,7 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { open, isMobile, setOpenMobile }
-   = useSidebar();
+    = useSidebar();
 
   const handleLinkClick = () => {
     if (isMobile) {
@@ -51,7 +52,7 @@ export function AppSidebar() {
             "font-headline text-xl font-semibold text-primary",
             !open && "hidden",
             isMobile && "block"
-            )}>
+          )}>
             Finanças Zen
           </h1>
         </Link>
@@ -83,11 +84,18 @@ export function AppSidebar() {
             <span className={cn(!open && "hidden", isMobile && "inline-block")}>Configurações</span>
           </Button>
         </Link>
+
+        <Separator className="my-2" />
+
+        <div className="flex items-center justify-center">
+          <SimpleThemeToggle />
+        </div>
+
         <div className={cn(
-            "pt-4 text-center text-xs text-muted-foreground",
-            !open && "hidden",
-            isMobile && "block"
-          )}
+          "pt-4 text-center text-xs text-muted-foreground",
+          !open && "hidden",
+          isMobile && "block"
+        )}
         >
           Carlos Horst®
         </div>

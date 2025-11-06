@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Link from 'next/link';
 import { Package2 } from 'lucide-react';
 import { ClientProviders } from '@/components/layout/client-providers';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 
 export const metadata: Metadata = {
@@ -41,7 +42,9 @@ export default function RootLayout({
                   <span>Finanças Zen</span>
                 </Link>
               </div>
-              {/* Placeholder for potential header content like user menu or breadcrumbs */}
+              <div className="flex flex-1 items-center justify-end gap-4">
+                <ThemeToggle />
+              </div>
             </header>
             <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 overflow-auto">
               {children}
