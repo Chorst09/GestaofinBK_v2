@@ -37,7 +37,7 @@ import { ForecastForm } from '@/components/forecasts/forecast-form';
 import type { ForecastItem, CreditCard as CreditCardType } from '@/lib/types';
 import { format, parseISO, startOfMonth, subMonths, startOfYear, endOfYear, startOfDay, endOfDay, endOfMonth, addMonths, endOfMonth as endOfMonthFns } from 'date-fns';
 import { ptBR } from 'date-fns/locale'; // Keep only one import for ptBR
-import { PlusCircle, Edit, Trash2, Scale, Landmark, DollarSign, CreditCard as CreditCardIconLucide, CalendarIcon, Filter, ChevronLeftIcon, ChevronRightIcon, TrendingUp } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Scale, Landmark, DollarSign, CreditCard as CreditCardIconLucide, CalendarIcon, Filter, ChevronLeftIcon, ChevronRightIcon, TrendingUp, RefreshCw } from 'lucide-react';
 import { getCategoryIcon, getCategoryByName, TRANSACTION_CATEGORIES } from '@/components/transactions/categories';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -72,6 +72,7 @@ export default function ForecastsPage() {
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editingForecastItem, setEditingForecastItem] = React.useState<ForecastItem | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<ForecastItem | null>(null);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const { toast } = useToast();
 
   const [selectedMonth, setSelectedMonth] = React.useState(startOfMonth(new Date()));
@@ -252,6 +253,19 @@ export default function ForecastsPage() {
   const handleOpenFormForAdd = () => {
     setEditingForecastItem(null);
     setIsFormOpen(true);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simular um pequeno delay para feedback visual
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // Forçar re-render dos dados
+    setSelectedMonth(prev => new Date(prev.getTime()));
+    setIsRefreshing(false);
+    toast({
+      title: "Dados atualizados",
+      description: "As previsões foram atualizadas com sucesso."
+    });
   };
 
   const handleFormSubmitSuccess = () => {
@@ -529,176 +543,195 @@ export default function ForecastsPage() {
       </div>
 
       {/* Seção de Gerenciamento - Cabeçalho Global */}
-      <div className="space-y-6 sm:space-y-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <h2 className="text-xl sm:text-2xl font-headline font-semibold">Gerenciar Previsões por Categoria</h2>
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleOpenFormForAdd} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Previsão
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="font-headline">
-                  {editingForecastItem ? 'Editar Previsão' : 'Adicionar Nova Previsão'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingForecastItem ? 'Atualize os detalhes da previsão.' : 'Preencha os detalhes da nova previsão.'}
-                </DialogDescription>
-              </DialogHeader>
-              <ForecastForm
-                onSubmitSuccess={handleFormSubmitSuccess}
-                initialData={editingForecastItem}
-                onAddForecastItem={addForecastItem}
-                onUpdateForecastItem={updateForecastItem}
-              />
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="default"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden xs:inline">Atualizar</span>
+            </Button>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={handleOpenFormForAdd} className="flex-1 sm:flex-none">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Previsão
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="font-headline">
+                    {editingForecastItem ? 'Editar Previsão' : 'Adicionar Nova Previsão'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingForecastItem ? 'Atualize os detalhes da previsão.' : 'Preencha os detalhes da nova previsão.'}
+                  </DialogDescription>
+                </DialogHeader>
+                <ForecastForm
+                  onSubmitSuccess={handleFormSubmitSuccess}
+                  initialData={editingForecastItem}
+                  onAddForecastItem={addForecastItem}
+                  onUpdateForecastItem={updateForecastItem}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
-        {/* Seção 1: Receitas Previstas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
-              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-              Receitas Previstas
-            </CardTitle>
-            <CardDescription>
-              Visualize e gerencie suas previsões de receitas e entradas financeiras.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap items-center gap-4 mb-4">
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="icon" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
-                  <ChevronLeftIcon className="h-4 w-4" />
-                  <span className="sr-only">Mês anterior</span>
-                </Button>
-                <span className="text-lg font-semibold font-headline min-w-[120px] text-center">
-                  {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
-                </span>
-                <Button variant="outline" size="icon" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
-                  <ChevronRightIcon className="h-4 w-4" />
-                  <span className="sr-only">Próximo mês</span>
-                </Button>
+        {/* Cards de Gerenciamento - Empilhados Verticalmente */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Seção 1: Receitas Previstas */}
+          <Card className="border-l-4 border-l-green-500">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="font-headline flex items-center gap-2 text-base sm:text-lg">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                Receitas Previstas
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Visualize e gerencie suas previsões de receitas e entradas financeiras.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-1 sm:gap-2 bg-muted rounded-lg p-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}>
+                    <ChevronLeftIcon className="h-4 w-4" />
+                    <span className="sr-only">Mês anterior</span>
+                  </Button>
+                  <span className="text-sm sm:text-base font-semibold font-headline min-w-[100px] sm:min-w-[140px] text-center capitalize">
+                    {format(selectedMonth, 'MMM yyyy', { locale: ptBR })}
+                  </span>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}>
+                    <ChevronRightIcon className="h-4 w-4" />
+                    <span className="sr-only">Próximo mês</span>
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setDatePreset('this_month')}>Este Mês</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setDatePreset('last_month')}>Mês Passado</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs hidden sm:inline-flex" onClick={() => setDatePreset('this_year')}>Este Ano</Button>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1 sm:gap-2">
+                      <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Categorias</span>
+                      {selectedCategories.size > 0 && <Badge variant="secondary" className="h-4 px-1 text-xs">{selectedCategories.size}</Badge>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="start">
+                    <DropdownMenuLabel>Filtrar por Categoria</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {TRANSACTION_CATEGORIES.filter(c => c.type !== 'general').map(category => (
+                      <DropdownMenuCheckboxItem
+                        key={category.name}
+                        checked={selectedCategories.has(category.name)}
+                        onCheckedChange={(checked) => handleCategoryChange(category.name, !!checked)}
+                      >
+                        {category.name}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {hasFilters && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setSelectedMonth(startOfMonth(new Date())); setSelectedCategories(new Set()); }}>
+                    Limpar Filtros
+                  </Button>
+                )}
               </div>
 
-              <Button variant="outline" size="sm" onClick={() => setDatePreset('this_month')}>Este Mês</Button>
-              <Button variant="outline" size="sm" onClick={() => setDatePreset('last_month')}>Mês Passado</Button>
-              <Button variant="outline" size="sm" onClick={() => setDatePreset('this_year')}>Este Ano</Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Categorias
-                    {selectedCategories.size > 0 && <Badge variant="secondary" className="ml-2">{selectedCategories.size}</Badge>}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="start">
-                  <DropdownMenuLabel>Filtrar por Categoria</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {TRANSACTION_CATEGORIES.filter(c => c.type !== 'general').map(category => (
-                    <DropdownMenuCheckboxItem
-                      key={category.name}
-                      checked={selectedCategories.has(category.name)}
-                      onCheckedChange={(checked) => handleCategoryChange(category.name, !!checked)}
-                    >
-                      {category.name}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {hasFilters && (
-                <Button variant="ghost" onClick={() => { setSelectedMonth(startOfMonth(new Date())); setSelectedCategories(new Set()); }}>Limpar Filtros</Button>
+              {renderForecastTable(
+                incomeItems,
+                hasFilters ? 'Nenhuma receita encontrada para o período/filtros selecionados.' : 'Nenhuma receita registrada ainda.',
+                sectionTotals.incomeTotal
               )}
-            </div>
+            </CardContent>
+          </Card>
 
-            {renderForecastTable(
-              incomeItems,
-              hasFilters ? 'Nenhuma receita encontrada para o período/filtros selecionados.' : 'Nenhuma receita registrada ainda.',
-              sectionTotals.incomeTotal
-            )}
-          </CardContent>
-        </Card>
+          {/* Seção 2: Outras Despesas (Moradia, Financiamento, etc.) */}
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="font-headline flex items-center gap-2 text-base sm:text-lg">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                Outras Despesas
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Despesas gerais como moradia, financiamento, contas fixas e outras categorias.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderForecastTable(
+                otherExpenseItems,
+                hasFilters ? 'Nenhuma despesa encontrada para o período/filtros selecionados.' : 'Nenhuma despesa registrada ainda.',
+                sectionTotals.otherExpensesTotal
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Seção 2: Outras Despesas (Moradia, Financiamento, etc.) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-blue-600" />
-              Outras Despesas
-            </CardTitle>
-            <CardDescription>
-              Despesas gerais como moradia, financiamento, contas fixas e outras categorias.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderForecastTable(
-              otherExpenseItems,
-              hasFilters ? 'Nenhuma despesa encontrada para o período/filtros selecionados.' : 'Nenhuma despesa registrada ainda.',
-              sectionTotals.otherExpensesTotal
-            )}
-          </CardContent>
-        </Card>
+          {/* Seção 3: Compras Parceladas no Cartão */}
+          <Card className="border-l-4 border-l-purple-500">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="font-headline flex items-center gap-2 text-base sm:text-lg">
+                <CreditCardIconLucide className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                Compras Parceladas no Cartão
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Visualize e gerencie suas previsões de despesas parceladas no cartão de crédito.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderForecastTable(
+                creditCardInstallmentItems,
+                hasFilters ? 'Nenhuma compra parcelada encontrada para o período/filtros selecionados.' : 'Nenhuma compra parcelada registrada ainda.',
+                sectionTotals.cardInstallmentTotal
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Seção 3: Compras Parceladas no Cartão */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center gap-2">
-              <CreditCardIconLucide className="h-5 w-5 text-purple-600" />
-              Compras Parceladas no Cartão
-            </CardTitle>
-            <CardDescription>
-              Visualize e gerencie suas previsões de despesas parceladas no cartão de crédito.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderForecastTable(
-              creditCardInstallmentItems,
-              hasFilters ? 'Nenhuma compra parcelada encontrada para o período/filtros selecionados.' : 'Nenhuma compra parcelada registrada ainda.',
-              sectionTotals.cardInstallmentTotal
-            )}
-          </CardContent>
-        </Card>
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              {deleteTarget?.installmentId ? (
+                <>
+                  <AlertDialogTitle>Confirmar Exclusão de Parcela</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Este item faz parte de uma compra parcelada. Deseja excluir apenas esta parcela ou esta e todas as parcelas futuras?
+                  </AlertDialogDescription>
+                </>
+              ) : (
+                <>
+                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir este item de previsão? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </>
+              )}
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancelar</AlertDialogCancel>
+              {deleteTarget?.installmentId ? (
+                <>
+                  <AlertDialogAction onClick={() => executeDelete(false)}>Excluir Somente Esta</AlertDialogAction>
+                  <AlertDialogAction onClick={() => executeDelete(true)} className="bg-destructive hover:bg-destructive/90">Excluir Todas Futuras</AlertDialogAction>
+                </>
+              ) : (
+                <AlertDialogAction onClick={() => executeDelete(false)} className="bg-destructive hover:bg-destructive/90">
+                  Excluir
+                </AlertDialogAction>
+              )}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            {deleteTarget?.installmentId ? (
-              <>
-                <AlertDialogTitle>Confirmar Exclusão de Parcela</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Este item faz parte de uma compra parcelada. Deseja excluir apenas esta parcela ou esta e todas as parcelas futuras?
-                </AlertDialogDescription>
-              </>
-            ) : (
-              <>
-                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem certeza que deseja excluir este item de previsão? Esta ação não pode ser desfeita.
-                </AlertDialogDescription>
-              </>
-            )}
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Cancelar</AlertDialogCancel>
-            {deleteTarget?.installmentId ? (
-              <>
-                <AlertDialogAction onClick={() => executeDelete(false)}>Excluir Somente Esta</AlertDialogAction>
-                <AlertDialogAction onClick={() => executeDelete(true)} className="bg-destructive hover:bg-destructive/90">Excluir Todas Futuras</AlertDialogAction>
-              </>
-            ) : (
-              <AlertDialogAction onClick={() => executeDelete(false)} className="bg-destructive hover:bg-destructive/90">
-                Excluir
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

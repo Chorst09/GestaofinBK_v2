@@ -148,48 +148,43 @@ export function PredictionsCard() {
 
     return (
         <Card className="w-full">
-            <CardHeader className="pb-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                        <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
-                            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                            Previsões de Gastos
-                        </CardTitle>
-                        <CardDescription className="text-sm">
-                            Configure suas previsões de gastos semanais, final de semana, alimentação e combustível
-                        </CardDescription>
-                    </div>
-                    <div className="flex gap-2 self-start sm:self-center">
+            <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="font-headline flex items-center gap-1.5 text-sm sm:text-base">
+                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                        Previsões de Gastos
+                    </CardTitle>
+                    <div className="flex gap-1">
                         {isEditing ? (
                             <>
-                                <Button size="sm" onClick={handleSave} className="gap-1 text-xs sm:text-sm">
-                                    <Save className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <Button size="sm" onClick={handleSave} className="h-7 gap-1 text-xs px-2">
+                                    <Save className="h-3 w-3" />
                                     <span className="hidden xs:inline">Salvar</span>
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={handleCancel} className="gap-1 text-xs sm:text-sm">
-                                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <Button size="sm" variant="outline" onClick={handleCancel} className="h-7 gap-1 text-xs px-2">
+                                    <X className="h-3 w-3" />
                                     <span className="hidden xs:inline">Cancelar</span>
                                 </Button>
                             </>
                         ) : (
-                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} className="gap-1 text-xs sm:text-sm">
-                                <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} className="h-7 gap-1 text-xs px-2">
+                                <Edit2 className="h-3 w-3" />
                                 <span className="hidden xs:inline">Editar</span>
                             </Button>
                         )}
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-2">
+            <CardContent className="space-y-2 px-3 sm:px-4 pb-3">
+                <div className="grid gap-1.5 sm:gap-2 grid-cols-2">
                     {predictionItems.map((item, index) => {
                         const Icon = item.icon;
                         return (
-                            <div key={index} className={`p-3 sm:p-4 rounded-lg border-2 ${item.bgColor}`}>
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Icon className={`h-4 w-4 ${item.color}`} />
-                                        <Label className={`font-semibold text-sm sm:text-base ${item.color}`}>{item.label}</Label>
+                            <div key={index} className={`p-1.5 sm:p-2 rounded border ${item.bgColor}`}>
+                                <div className="flex items-center justify-between gap-1">
+                                    <div className="flex items-center gap-1">
+                                        <Icon className={`h-3 w-3 ${item.color}`} />
+                                        <Label className={`font-semibold text-xs ${item.color}`}>{item.label}</Label>
                                     </div>
                                     {isEditing ? (
                                         <div className="relative">
@@ -227,68 +222,29 @@ export function PredictionsCard() {
                                             />
                                         </div>
                                     ) : (
-                                        <Badge variant="secondary" className="font-mono font-semibold bg-background text-foreground border px-2 py-1 text-xs sm:text-sm sm:px-3">
+                                        <Badge variant="secondary" className="font-mono font-semibold bg-background text-foreground border px-1 py-0 text-xs h-5">
                                             R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </Badge>
                                     )}
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium mt-1">{item.description}</p>
                             </div>
                         );
                     })}
                 </div>
 
-                <Separator />
-
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Calculator className="h-4 w-4 text-primary" />
-                        <h4 className="font-semibold">Projeção Mensal</h4>
+                <div className="flex items-center justify-between pt-1 border-t">
+                    <div className="flex items-center gap-1">
+                        <Calculator className="h-3 w-3 text-primary" />
+                        <span className="font-semibold text-xs">Total Mensal:</span>
                     </div>
-
-                    <div className="grid gap-3 text-sm">
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Gastos semanais (x4):</span>
-                            <span className="font-mono">R$ {(predictions.weeklyExpenses * 4).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Final de semana (x4):</span>
-                            <span className="font-mono">R$ {(predictions.weekendExpenses * 4).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Alimentação mensal:</span>
-                            <span className="font-mono">R$ {predictions.foodExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Combustível mensal:</span>
-                            <span className="font-mono">R$ {predictions.fuelExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-
-                        <Separator />
-
-                        <div className="flex justify-between items-center font-semibold text-base">
-                            <span>Total Estimado Mensal:</span>
-                            <Badge variant="destructive" className="text-base px-3 py-1 font-mono">
-                                R$ {totalMonthlyPrediction.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </Badge>
-                        </div>
-                    </div>
+                    <Badge variant="destructive" className="text-xs px-1.5 py-0 font-mono h-5">
+                        R$ {totalMonthlyPrediction.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Badge>
                 </div>
 
                 {isEditing && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                            ⌨️ <strong>Dicas de edição:</strong> Use vírgula (,) para decimais • Pressione Enter para salvar • Pressione Esc para cancelar
-                        </p>
-                    </div>
-                )}
-
-                {totalMonthlyPrediction > 0 && !isEditing && (
-                    <div className="p-3 bg-muted rounded-lg">
-                        <p className="text-sm text-muted-foreground">
-                            💡 <strong>Dica:</strong> Esta é uma estimativa baseada nos valores configurados.
-                            Use essas previsões para planejar seu orçamento mensal e comparar com seus gastos reais.
-                        </p>
+                    <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-700 dark:text-blue-300">
+                        ⌨️ Use vírgula (,) • Enter salva • Esc cancela
                     </div>
                 )}
             </CardContent>

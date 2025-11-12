@@ -203,64 +203,49 @@ export function PredictionsSummaryCard() {
 
     return (
         <Card className="w-full">
-            <CardHeader className="pb-4">
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <CardTitle className="font-headline flex items-center gap-2 text-lg sm:text-xl">
-                                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                                Resumo Mensal de Previsões
-                            </CardTitle>
-                            <CardDescription className="text-sm">
-                                Comparativo mensal entre receitas previstas e todos os tipos de gastos
-                            </CardDescription>
-                        </div>
-
-                        {/* Controles de Navegação Mensal */}
-                        <div className="flex items-center gap-1 sm:gap-2 self-start sm:self-center">
-                            <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-8 w-8 p-0 sm:h-9 sm:w-9">
-                                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                            <div className="text-center min-w-[120px] sm:min-w-[140px]">
-                                <div className="font-semibold text-xs sm:text-sm">
-                                    {format(selectedMonth, 'MMM yyyy', { locale: ptBR })}
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={goToCurrentMonth}
-                                    className="text-xs h-auto p-1 text-muted-foreground hover:text-foreground hidden sm:block"
-                                >
-                                    Mês atual
-                                </Button>
-                            </div>
-                            <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-8 w-8 p-0 sm:h-9 sm:w-9">
-                                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
+            <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                        <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                        <CardTitle className="font-headline text-sm sm:text-base">
+                            Resumo Mensal
+                        </CardTitle>
                         {summary.status === 'positive' ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <CheckCircle className="h-3.5 w-3.5 text-green-500" />
                         ) : (
-                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                         )}
+                    </div>
+
+                    {/* Controles de Navegação Mensal */}
+                    <div className="flex items-center gap-0.5 bg-muted rounded p-0.5">
+                        <Button variant="ghost" size="sm" onClick={goToPreviousMonth} className="h-6 w-6 p-0">
+                            <ChevronLeft className="h-3 w-3" />
+                        </Button>
+                        <div className="text-center min-w-[80px] sm:min-w-[100px]">
+                            <div className="font-semibold text-xs capitalize">
+                                {format(selectedMonth, 'MMM yyyy', { locale: ptBR })}
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={goToNextMonth} className="h-6 w-6 p-0">
+                            <ChevronRight className="h-3 w-3" />
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-4 sm:space-y-6">
+            <CardContent className="space-y-2 px-3 sm:px-4 pb-3">
                 {/* Cards de Resumo */}
-                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-1.5 grid-cols-2 lg:grid-cols-4">
                     {summaryItems.map((item, index) => {
                         const Icon = item.icon;
                         return (
-                            <div key={index} className={`p-3 sm:p-4 rounded-lg border-2 ${item.bgColor}`}>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${item.color}`} />
-                                    <span className={`text-xs sm:text-sm font-semibold ${item.color}`}>{item.label}</span>
+                            <div key={index} className={`p-1.5 rounded border ${item.bgColor}`}>
+                                <div className="flex items-center gap-1 mb-0.5">
+                                    <Icon className={`h-3 w-3 ${item.color}`} />
+                                    <span className={`text-xs font-semibold ${item.color} truncate`}>{item.label}</span>
                                 </div>
-                                <div className={`text-sm sm:text-lg font-bold font-mono ${item.color}`}>
+                                <div className={`text-xs font-bold font-mono ${item.color}`}>
                                     R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                             </div>
@@ -268,120 +253,36 @@ export function PredictionsSummaryCard() {
                     })}
                 </div>
 
-                {/* Indicador quando não há dados formais no mês */}
-                {formalForecasts.totalIncome === 0 && formalForecasts.totalExpenses === 0 && (
-                    <div className="p-4 bg-muted/50 rounded-lg border border-dashed border-muted-foreground/30">
-                        <p className="text-sm text-muted-foreground text-center">
-                            📅 Nenhuma previsão formal encontrada para {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
-                        </p>
-                    </div>
-                )}
-
-                <Separator />
-
-                {/* Detalhamento das Previsões Personalizadas */}
+                {/* Detalhamento das Previsões Personalizadas - Compacto */}
                 {customPredictions.totalCustom > 0 && (
-                    <div className="space-y-4">
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                            Detalhamento - Previsões Personalizadas
-                        </h4>
-                        <div className="grid gap-3 md:grid-cols-2">
-                            {customBreakdown.map((item, index) => {
-                                const Icon = item.icon;
-                                const percentage = customPredictions.totalCustom > 0 ? (item.value / customPredictions.totalCustom) * 100 : 0;
-
-                                return (
-                                    <div key={index} className="flex items-center justify-between p-3 bg-muted/80 dark:bg-muted/40 rounded-lg border border-border">
-                                        <div className="flex items-center gap-2">
-                                            <Icon className={`h-4 w-4 ${item.color}`} />
-                                            <span className={`text-sm font-semibold ${item.color}`}>{item.label}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-mono text-sm font-semibold">
-                                                R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {percentage.toFixed(1)}%
-                                            </div>
-                                        </div>
+                    <div className="grid gap-1.5 grid-cols-2 pt-1 border-t">
+                        {customBreakdown.map((item, index) => {
+                            const Icon = item.icon;
+                            return (
+                                <div key={index} className="flex items-center justify-between p-1 bg-muted/50 rounded">
+                                    <div className="flex items-center gap-1">
+                                        <Icon className={`h-3 w-3 ${item.color}`} />
+                                        <span className={`text-xs font-medium ${item.color} truncate`}>{item.label}</span>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                    <span className={`font-mono text-xs font-semibold ${item.color}`}>
+                                        R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
 
-                <Separator />
-
-                {/* Análise Final */}
-                <div className="space-y-4">
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                        Análise Financeira
-                    </h4>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {/* Saldo Final */}
-                        <div className={`p-4 rounded-lg border-2 ${summary.status === 'positive' ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700' : 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700'}`}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className={`h-4 w-4 ${summary.status === 'positive' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`} />
-                                <span className={`text-sm font-semibold ${summary.status === 'positive' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
-                                    Saldo Previsto
-                                </span>
-                            </div>
-                            <div className={`text-xl font-bold font-mono ${summary.status === 'positive' ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
-                                R$ {Math.abs(summary.balance).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </div>
-                            <div className="text-xs text-muted-foreground font-medium mt-1">
-                                {summary.status === 'positive' ? 'Sobra prevista' : 'Déficit previsto'}
-                            </div>
-                        </div>
-
-                        {/* Percentual de Gastos */}
-                        <div className="p-4 rounded-lg border-2 bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
-                            <div className="flex items-center gap-2 mb-2">
-                                <TrendingDown className="h-4 w-4 text-blue-800 dark:text-blue-200" />
-                                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-                                    Comprometimento da Renda
-                                </span>
-                            </div>
-                            <div className="text-xl font-bold font-mono text-blue-900 dark:text-blue-100">
-                                {summary.expenseRatio.toFixed(1)}%
-                            </div>
-                            <Progress
-                                value={Math.min(summary.expenseRatio, 100)}
-                                className="mt-2 h-2"
-                            />
-                            <div className="text-xs text-muted-foreground font-medium mt-1">
-                                {summary.expenseRatio > 100 ? 'Gastos excedem receitas' : 'Da receita prevista'}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Alertas e Recomendações */}
-                    <div className={`p-4 rounded-lg border-2 ${summary.status === 'positive' ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700' : 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700'}`}>
-                        <div className="flex items-start gap-2">
-                            {summary.status === 'positive' ? (
-                                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                            ) : (
-                                <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
-                            )}
-                            <div>
-                                <p className={`text-sm font-semibold ${summary.status === 'positive' ? 'text-green-800 dark:text-green-200' : 'text-yellow-800 dark:text-yellow-200'}`}>
-                                    {summary.status === 'positive' ? '✅ Situação Favorável' : '⚠️ Atenção Necessária'}
-                                </p>
-                                <p className={`text-xs mt-1 font-medium ${summary.status === 'positive' ? 'text-green-700 dark:text-green-300' : 'text-yellow-700 dark:text-yellow-300'}`}>
-                                    {summary.status === 'positive'
-                                        ? 'Suas previsões indicam um saldo positivo. Continue monitorando seus gastos para manter este resultado.'
-                                        : summary.expenseRatio > 100
-                                            ? 'Seus gastos previstos excedem suas receitas. Considere revisar suas previsões ou buscar formas de aumentar a renda.'
-                                            : 'Saldo apertado previsto. Monitore de perto os gastos para evitar déficit.'
-                                    }
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                {/* Saldo Final - Compacto */}
+                <div className={`flex items-center justify-between p-1.5 rounded border ${summary.status === 'positive' ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700' : 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700'}`}>
+                    <span className={`text-xs font-semibold ${summary.status === 'positive' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                        Saldo: {summary.status === 'positive' ? 'Positivo' : 'Negativo'}
+                    </span>
+                    <span className={`text-xs font-bold font-mono ${summary.status === 'positive' ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'}`}>
+                        R$ {Math.abs(summary.balance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
                 </div>
             </CardContent>
-        </Card>
+        </Card >
     );
 }
