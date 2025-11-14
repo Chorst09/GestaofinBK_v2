@@ -57,6 +57,9 @@ const forecastItemFormSchema = z.object({
   isInstallment: z.boolean().default(false),
   currentInstallment: z.coerce.number().int().min(1, 'Deve ser no mínimo 1.').optional(),
   totalInstallments: z.coerce.number().int().min(2, 'Deve ser no mínimo 2.').optional(),
+  // Recurring fields
+  isRecurring: z.boolean().default(false),
+  recurringMonths: z.coerce.number().int().min(1).max(24).optional(),
 });
 
 
@@ -106,6 +109,22 @@ export function ForecastForm({
     }, {
       message: 'A parcela atual não pode ser maior que o total de parcelas.',
       path: ['currentInstallment'],
+    }).refine(data => {
+      if (data.isRecurring) {
+        return data.recurringMonths !== undefined && data.recurringMonths > 0;
+      }
+      return true;
+    }, {
+      message: 'Para previsões recorrentes, o número de meses é obrigatório.',
+      path: ['isRecurring'],
+    }).refine(data => {
+      if (data.isInstallment && data.isRecurring) {
+        return false;
+      }
+      return true;
+    }, {
+      message: 'Não é possível ter uma previsão parcelada e recorrente ao mesmo tempo.',
+      path: ['isRecurring'],
     });
 
   const form = useForm<z.infer<typeof forecastItemValidationSchema>>({
@@ -121,6 +140,8 @@ export function ForecastForm({
           isInstallment: isEditingInstallment,
           currentInstallment: initialData.currentInstallment,
           totalInstallments: initialData.totalInstallments,
+          isRecurring: false,
+          recurringMonths: 12,
         }
       : {
           description: '',
@@ -134,6 +155,8 @@ export function ForecastForm({
           isInstallment: false,
           currentInstallment: 1,
           totalInstallments: 2,
+          isRecurring: false,
+          recurringMonths: 12,
         },
   });
 
@@ -150,6 +173,7 @@ export function ForecastForm({
   const selectedCategoryName = form.watch('category');
   const watchCreditCardId = form.watch('creditCardId');
   const isInstallment = form.watch('isInstallment');
+  const isRecurring = form.watch('isRecurring');
 
   React.useEffect(() => {
     if (forecastKind === 'income') {
@@ -175,12 +199,25 @@ export function ForecastForm({
     }
   }, [forecastKind, form, getCategoriesByType, getCategoryByName]);
 
+  React.useEffect(() => {
+    if (isInstallment) {
+      form.setValue('isRecurring', false);
+    }
+  }, [isInstallment, form]);
+
+  React.useEffect(() => {
+    if (isRecurring) {
+      form.setValue('isInstallment', false);
+    }
+  }, [isRecurring, form]);
+
   const availableCategories = getCategoriesByType(forecastType);
   const selectedCategoryConfig = React.useMemo(() => getCategoryByName(selectedCategoryName), [selectedCategoryName, getCategoryByName]);
   const showCreditCardField = forecastType === 'expense' && selectedCategoryConfig?.isCreditCard;
   const allowExplicitBankName = showCreditCardField && (watchCreditCardId === NO_CARD_SELECTED_VALUE || !watchCreditCardId);
-  const showIsFixedField = forecastType === 'expense' && !isInstallment;
+  const showIsFixedField = forecastType === 'expense' && !isInstallment && !isRecurring;
   const showInstallmentFields = showCreditCardField;
+  const showRecurringFields = !isInstallment;
 
   React.useEffect(() => {
     if (showCreditCardField && watchCreditCardId && watchCreditCardId !== NO_CARD_SELECTED_VALUE) {
@@ -192,7 +229,7 @@ export function ForecastForm({
     const categoryConfig = getCategoryByName(values.category);
     const isCreditCardExpense = values.type === 'expense' && categoryConfig?.isCreditCard;
 
-    const forecastItemData: ForecastItemFormData = {
+    const forecastItemData = {
       description: values.description,
       amount: values.type === 'expense' ? -Math.abs(values.amount) : Math.abs(values.amount),
       type: values.type,
@@ -204,7 +241,9 @@ export function ForecastForm({
       isInstallment: values.isInstallment,
       currentInstallment: values.currentInstallment,
       totalInstallments: values.totalInstallments,
-    };
+      isRecurring: values.isRecurring,
+      recurringMonths: values.recurringMonths,
+    } as ForecastItemFormData;
     
     try {
       if (initialData) {
@@ -226,6 +265,8 @@ export function ForecastForm({
         isInstallment: false,
         currentInstallment: 1,
         totalInstallments: 2,
+        isRecurring: false,
+        recurringMonths: 12,
       });
       if (onSubmitSuccess) {
         onSubmitSuccess();
@@ -485,6 +526,59 @@ export function ForecastForm({
                             )}
                         />
                     </div>
+                )}
+                <Separator />
+            </>
+        )}
+
+        {showRecurringFields && (
+            <>
+                <Separator />
+                 <FormField
+                    control={form.control}
+                    name="isRecurring"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                            <FormLabel>Previsão Recorrente?</FormLabel>
+                             <FormDescription>
+                                Marque para criar previsões para vários meses consecutivos.
+                            </FormDescription>
+                        </div>
+                        <FormControl>
+                        <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                        </FormControl>
+                    </FormItem>
+                    )}
+                />
+                {isRecurring && (
+                    <FormField
+                        control={form.control}
+                        name="recurringMonths"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Número de Meses</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value?.toString()} value={field.value?.toString()}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Selecione a duração" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="12">12 meses</SelectItem>
+                                <SelectItem value="24">24 meses</SelectItem>
+                            </SelectContent>
+                            </Select>
+                            <FormDescription>
+                                A previsão será criada para os próximos {field.value} meses a partir do mês selecionado.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                 )}
                 <Separator />
             </>

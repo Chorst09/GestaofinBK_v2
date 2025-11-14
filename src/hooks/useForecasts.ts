@@ -98,6 +98,24 @@ export function useForecasts(isBackupInstance = false): UseForecastsReturn | Use
                 totalInstallments: itemData.totalInstallments,
             });
         }
+      } else if (itemData.isRecurring && itemData.recurringMonths) {
+        const firstDate = startOfMonth(new Date(itemData.date));
+
+        for (let i = 0; i < itemData.recurringMonths; i++) {
+            const recurringDate = addMonths(firstDate, i);
+
+            newItems.push({
+                id: uuidv4(),
+                description: itemData.description,
+                amount: Number(itemData.amount),
+                type: itemData.type,
+                category: itemData.category,
+                date: recurringDate.toISOString(),
+                creditCardId: itemData.creditCardId ? itemData.creditCardId : undefined,
+                explicitBankName: itemData.creditCardId ? undefined : itemData.explicitBankName,
+                isFixed: itemData.type === 'expense' ? (itemData.isFixed ?? false) : false,
+            });
+        }
       } else {
         newItems.push({
           id: uuidv4(),

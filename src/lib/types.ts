@@ -43,6 +43,8 @@ export interface ForecastItem {
 
 export type ForecastItemFormData = Omit<ForecastItem, 'id' | 'installmentId'> & {
   isInstallment?: boolean; // Form helper to trigger installment creation logic
+  isRecurring?: boolean; // Form helper to trigger recurring forecast creation logic
+  recurringMonths?: number; // Number of months for recurring forecasts (12 or 24)
 };
 
 
