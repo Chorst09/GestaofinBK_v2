@@ -40,6 +40,7 @@ import { VehicleFuelCharts } from '@/components/vehicles/vehicle-fuel-charts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AddToCalendarCard } from '@/components/vehicles/add-to-calendar-card'; // Import the new component
 import { NextMaintenanceCard } from '@/components/vehicles/next-maintenance-card'; // Import the new component
+import { NextRevisionCard } from '@/components/vehicles/next-revision-card'; // Import the next revision card
 import { BankLogo } from '@/components/layout/BankLogo';
 
 export default function VehiclesPage() {
@@ -293,10 +294,10 @@ export default function VehiclesPage() {
             </Card>
             
             {/* Next Maintenance Card */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
                  <NextMaintenanceCard nextMaintenance={nextMaintenance} />
-                 <AddToCalendarCard nextMaintenance={nextMaintenance} /> {/* Add the new card */}
-                 {/* You can add other cards here if needed */}
+                 <NextRevisionCard vehicle={selectedVehicle} expenses={expensesForSelectedVehicle} />
+                 <AddToCalendarCard nextMaintenance={nextMaintenance} />
             </div>
 
             <Tabs defaultValue="dashboard" className="w-full">
