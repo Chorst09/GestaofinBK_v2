@@ -415,7 +415,19 @@ export default function ForecastsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-headline font-bold tracking-tight mb-4 sm:mb-6">Dashboard de Previsões</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-headline font-bold tracking-tight">Dashboard de Previsões</h1>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Atualizar Dashboard
+          </Button>
+        </div>
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
