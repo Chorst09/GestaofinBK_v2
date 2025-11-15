@@ -6,6 +6,8 @@ import { useForecasts } from '@/hooks/useForecasts';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { StatCard } from '@/components/ui/stat-card';
 import {
   Table,
   TableBody,
@@ -415,72 +417,59 @@ export default function ForecastsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-headline font-bold tracking-tight">Dashboard de Previsões</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl font-headline font-bold tracking-tight gradient-text">Dashboard de Previsões</h1>
           <Button
             variant="outline"
             size="default"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="gap-2"
+            className="gap-2 button-modern"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             Atualizar Dashboard
           </Button>
         </div>
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium font-body">Receitas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <Landmark className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold font-headline text-accent-foreground bg-accent/30 rounded px-2 py-1 w-fit">
-                R$ {income.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground pt-1">
-                {hasFilters ? 'Soma das previsões no período/filtros.' : 'Soma de todas as previsões de receita.'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium font-body">Despesas Previstas {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold font-headline text-destructive">
-                R$ {expenses.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground pt-1">
-                {hasFilters ? 'Soma das previsões no período/filtros.' : 'Soma de todas as previsões de despesa.'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium font-body">Saldo Previsto {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <Scale className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold font-headline ${balance >= 0 ? 'text-accent-foreground' : 'text-destructive'}`}>
-                R$ {balance.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground pt-1">Diferença entre receitas e despesas previstas.</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium font-body">Despesas de Cartão {hasFilters ? '(Período)' : '(Geral)'}</CardTitle>
-              <CreditCardIconLucide className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-headline text-destructive">
-                R$ {cardExpenses.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground pt-1">Soma das previsões na categoria '{creditCardCategoryName}'.</p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title={`Receitas Previstas ${hasFilters ? '(Período)' : '(Geral)'}`}
+            value={`R$ ${income.toFixed(2)}`}
+            description={hasFilters ? 'Soma das previsões no período/filtros.' : 'Soma de todas as previsões de receita.'}
+            icon={TrendingUp}
+            variant="success"
+            className="animate-scale-in"
+            style={{ animationDelay: '0.1s' }}
+          />
+          
+          <StatCard
+            title={`Despesas Previstas ${hasFilters ? '(Período)' : '(Geral)'}`}
+            value={`R$ ${expenses.toFixed(2)}`}
+            description={hasFilters ? 'Soma das previsões no período/filtros.' : 'Soma de todas as previsões de despesa.'}
+            icon={DollarSign}
+            variant="error"
+            className="animate-scale-in"
+            style={{ animationDelay: '0.2s' }}
+          />
+          
+          <StatCard
+            title={`Saldo Previsto ${hasFilters ? '(Período)' : '(Geral)'}`}
+            value={`R$ ${balance.toFixed(2)}`}
+            description="Diferença entre receitas e despesas previstas."
+            icon={Scale}
+            variant={balance >= 0 ? "info" : "warning"}
+            className="animate-scale-in"
+            style={{ animationDelay: '0.3s' }}
+          />
+          
+          <StatCard
+            title={`Despesas de Cartão ${hasFilters ? '(Período)' : '(Geral)'}`}
+            value={`R$ ${cardExpenses.toFixed(2)}`}
+            description={`Soma das previsões na categoria '${creditCardCategoryName}'.`}
+            icon={CreditCardIconLucide}
+            variant="error"
+            className="animate-scale-in"
+            style={{ animationDelay: '0.4s' }}
+          />
         </div>
 
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">

@@ -10,8 +10,11 @@ import { useCreditCards } from '@/hooks/useCreditCards';
 import { useBankAccounts } from '@/hooks/useBankAccounts';
 import { useVehicleExpenses } from '@/hooks/useVehicleExpenses';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, DollarSign, Scale, CreditCard, Landmark, Filter, ChevronLeft, ChevronRight, WalletCards } from 'lucide-react';
+import { PlusCircle, DollarSign, Scale, CreditCard, Landmark, Filter, ChevronLeft, ChevronRight, WalletCards, TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { format, parseISO, startOfMonth, endOfMonth, subMonths, addMonths, isWithinInterval, getDaysInMonth, setDate, formatISO, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -163,18 +166,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 p-1">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-2 animate-fade-in">
         <div className="space-y-2">
-          <h1 className="text-4xl font-headline font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-headline font-bold tracking-tight gradient-text">
             Dashboard
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Visão geral das suas finanças
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link href="/transactions" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200">
+                <Button className="w-full sm:w-auto button-modern">
                   <PlusCircle className="mr-2 h-4 w-4" /> 
                   Adicionar Transação
                 </Button>
@@ -183,19 +186,19 @@ export default function DashboardPage() {
       </div>
       
       {/* Filter Section */}
-      <Card className="border-0 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
-        <CardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
+      <ModernCard variant="glass" className="animate-slide-in">
+        <ModernCardContent className="pt-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
                 <Button 
                   variant="outline" 
                   size="icon" 
                   onClick={() => changeMonth('prev')}
-                  className="border-slate-300 hover:bg-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                  className="button-modern"
                 >
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 text-center w-48 capitalize">
+                <div className="bg-card px-4 py-2 rounded-lg shadow-sm border border-border">
+                  <h2 className="text-xl font-bold text-foreground text-center w-48 capitalize">
                     {currentMonth ? format(currentMonth, 'MMMM yyyy', { locale: ptBR }) : ''}
                   </h2>
                 </div>
@@ -203,7 +206,7 @@ export default function DashboardPage() {
                   variant="outline" 
                   size="icon" 
                   onClick={() => changeMonth('next')}
-                  className="border-slate-300 hover:bg-slate-200 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                  className="button-modern"
                 >
                     <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -214,12 +217,12 @@ export default function DashboardPage() {
                     <DropdownMenuTrigger asChild>
                         <Button 
                           variant="outline"
-                          className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                          className="button-modern"
                         >
                             <Filter className="mr-2 h-4 w-4" />
                             Categorias
                             {selectedCategories.size > 0 && (
-                              <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              <Badge variant="secondary" className="ml-2 badge-modern">
                                 {selectedCategories.size}
                               </Badge>
                             )}
@@ -244,140 +247,56 @@ export default function DashboardPage() {
                     <Button 
                       variant="ghost" 
                       onClick={() => { if(currentMonth) { setCurrentMonth(startOfMonth(new Date())); setSelectedCategories(new Set()); } }}
-                      className="text-slate-600 hover:text-slate-800 hover:bg-slate-200 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+                      className="button-modern"
                     >
                       Limpar Filtros
                     </Button>
                 )}
             </div>
-        </CardContent>
-      </Card>
+        </ModernCardContent>
+      </ModernCard>
 
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 shadow-lg hover:shadow-xl transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
-              Receita do Mês
-            </CardTitle>
-            <div className="p-2 bg-emerald-500/20 rounded-full">
-              <Landmark className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold font-headline text-emerald-800 dark:text-emerald-200 mb-2">
-              R$ {totalIncomeFromTransactions.toFixed(2)}
-            </div>
-            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">{summaryPeriodText}</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Receita do Mês"
+          value={`R$ ${totalIncomeFromTransactions.toFixed(2)}`}
+          description={summaryPeriodText}
+          icon={TrendingUp}
+          variant="success"
+          className="animate-scale-in"
+          style={{ animationDelay: '0.1s' }}
+        />
 
-        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 shadow-lg hover:shadow-xl transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-sm font-semibold text-red-700 dark:text-red-300 uppercase tracking-wide">
-              Despesa do Mês
-            </CardTitle>
-            <div className="p-2 bg-red-500/20 rounded-full">
-              <DollarSign className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-3xl font-bold font-headline text-red-800 dark:text-red-200 mb-2">
-              R$ {totalExpensesFromTransactions.toFixed(2)}
-            </div>
-            <p className="text-sm text-red-600 dark:text-red-400 font-medium">{summaryPeriodText}</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Despesa do Mês"
+          value={`R$ ${totalExpensesFromTransactions.toFixed(2)}`}
+          description={summaryPeriodText}
+          icon={TrendingDown}
+          variant="error"
+          className="animate-scale-in"
+          style={{ animationDelay: '0.2s' }}
+        />
 
-        <Card className={`relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${
-          monthlyBalance >= 0 
-            ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900' 
-            : 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900'
-        }`}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${
-            monthlyBalance >= 0 ? 'from-blue-500/10' : 'from-orange-500/10'
-          } to-transparent`} />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className={`text-sm font-semibold uppercase tracking-wide ${
-              monthlyBalance >= 0 
-                ? 'text-blue-700 dark:text-blue-300' 
-                : 'text-orange-700 dark:text-orange-300'
-            }`}>
-              Balanço do Mês
-            </CardTitle>
-            <div className={`p-2 rounded-full ${
-              monthlyBalance >= 0 ? 'bg-blue-500/20' : 'bg-orange-500/20'
-            }`}>
-              <Scale className={`h-5 w-5 ${
-                monthlyBalance >= 0 
-                  ? 'text-blue-600 dark:text-blue-400' 
-                  : 'text-orange-600 dark:text-orange-400'
-              }`} />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className={`text-3xl font-bold font-headline mb-2 ${
-              monthlyBalance >= 0 
-                ? 'text-blue-800 dark:text-blue-200' 
-                : 'text-orange-800 dark:text-orange-200'
-            }`}>
-              R$ {monthlyBalance.toFixed(2)}
-            </div>
-            <p className={`text-sm font-medium ${
-              monthlyBalance >= 0 
-                ? 'text-blue-600 dark:text-blue-400' 
-                : 'text-orange-600 dark:text-orange-400'
-            }`}>
-              Receitas - Despesas no período
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Balanço do Mês"
+          value={`R$ ${monthlyBalance.toFixed(2)}`}
+          description="Receitas - Despesas no período"
+          icon={Scale}
+          variant={monthlyBalance >= 0 ? "info" : "warning"}
+          className="animate-scale-in"
+          style={{ animationDelay: '0.3s' }}
+        />
 
-        <Card className={`relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${
-          finalAccumulatedBalance >= 0 
-            ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900' 
-            : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900'
-        }`}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${
-            finalAccumulatedBalance >= 0 ? 'from-purple-500/10' : 'from-gray-500/10'
-          } to-transparent`} />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className={`text-sm font-semibold uppercase tracking-wide ${
-              finalAccumulatedBalance >= 0 
-                ? 'text-purple-700 dark:text-purple-300' 
-                : 'text-gray-700 dark:text-gray-300'
-            }`}>
-              Saldo Acumulado
-            </CardTitle>
-            <div className={`p-2 rounded-full ${
-              finalAccumulatedBalance >= 0 ? 'bg-purple-500/20' : 'bg-gray-500/20'
-            }`}>
-              <WalletCards className={`h-5 w-5 ${
-                finalAccumulatedBalance >= 0 
-                  ? 'text-purple-600 dark:text-purple-400' 
-                  : 'text-gray-600 dark:text-gray-400'
-              }`} />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className={`text-3xl font-bold font-headline mb-2 ${
-              finalAccumulatedBalance >= 0 
-                ? 'text-purple-800 dark:text-purple-200' 
-                : 'text-gray-800 dark:text-gray-200'
-            }`}>
-              R$ {finalAccumulatedBalance.toFixed(2)}
-            </div>
-            <p className={`text-sm font-medium ${
-              finalAccumulatedBalance >= 0 
-                ? 'text-purple-600 dark:text-purple-400' 
-                : 'text-gray-600 dark:text-gray-400'
-            }`}>
-              Saldo anterior + balanço atual
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Saldo Acumulado"
+          value={`R$ ${finalAccumulatedBalance.toFixed(2)}`}
+          description="Saldo anterior + balanço atual"
+          icon={WalletCards}
+          variant={finalAccumulatedBalance >= 0 ? "success" : "error"}
+          className="animate-scale-in"
+          style={{ animationDelay: '0.4s' }}
+        />
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
@@ -435,25 +354,25 @@ export default function DashboardPage() {
         </ErrorBoundary>
       </div>
 
-      <Card className="border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 shadow-lg">
-        <CardHeader className="pb-4">
-          <CardTitle className="font-headline text-xl text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-              <CreditCard className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+      <ModernCard variant="gradient" className="animate-fade-in">
+        <ModernCardHeader className="pb-4">
+          <ModernCardTitle className="font-headline text-xl flex items-center gap-2">
+            <div className="p-2 bg-muted rounded-lg">
+              <CreditCard className="h-5 w-5 text-primary" />
             </div>
             Transações Recentes
-          </CardTitle>
-          <CardDescription className="text-slate-600 dark:text-slate-400">
+          </ModernCardTitle>
+          <ModernCardDescription>
             Suas últimas 5 movimentações no mês selecionado
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </ModernCardDescription>
+        </ModernCardHeader>
+        <ModernCardContent>
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-8">
-              <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <CreditCard className="h-8 w-8 text-slate-400" />
+              <div className="p-4 bg-muted rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <CreditCard className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-slate-500 dark:text-slate-400">
+              <p className="text-muted-foreground">
                 Nenhuma transação encontrada para o mês selecionado
                 {selectedCategories.size > 0 ? ' com os filtros aplicados' : ''}
               </p>
@@ -522,36 +441,41 @@ export default function DashboardPage() {
                 }
 
                 return (
-                  <div key={`transaction-${transaction.id}-${index}`} className="group flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200">
+                  <div 
+                    key={`transaction-${transaction.id}-${index}`} 
+                    className="group flex items-center justify-between p-4 bg-card rounded-xl border border-border shadow-sm card-modern animate-fade-in"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
                     <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-full ${
-                        transaction.amount < 0 
-                          ? 'bg-red-100 dark:bg-red-900/30' 
-                          : 'bg-emerald-100 dark:bg-emerald-900/30'
-                      }`}>
+                      <div className={cn(
+                        "p-3 rounded-full transition-transform group-hover:scale-110",
+                        transaction.amount < 0 ? 'bg-destructive/10' : 'bg-success/10'
+                      )}>
                         {logoKeyForLogo || photoUrlForLogo ? (
                           <BankLogo 
                             logoKey={logoKeyForLogo} 
                             photoUrl={photoUrlForLogo} 
-                            className={`h-6 w-6 ${
-                              transaction.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-                            }`} 
+                            className={cn(
+                              "h-6 w-6",
+                              transaction.amount < 0 ? 'text-destructive' : 'text-success'
+                            )} 
                           />
                         ) : (
-                          <Icon className={`h-6 w-6 ${
-                            transaction.amount < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-                          }`} />
+                          <Icon className={cn(
+                            "h-6 w-6",
+                            transaction.amount < 0 ? 'text-destructive' : 'text-success'
+                          )} />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        <p className="font-semibold text-foreground truncate">
                           {transaction.description}
                         </p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className="text-sm text-slate-500 dark:text-slate-400">
+                          <span className="text-sm text-muted-foreground">
                             {transaction.date ? format(parseISO(transaction.date), 'dd/MM/yyyy', { locale: ptBR }) : ''}
                           </span>
-                          <Badge variant="outline" className="text-xs border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-400">
+                          <Badge variant="outline" className="text-xs badge-modern">
                             {transaction.category}
                           </Badge>
                           {accountOrCardElement}
@@ -559,11 +483,10 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-lg font-bold ${
-                        transaction.amount < 0 
-                          ? 'text-red-600 dark:text-red-400' 
-                          : 'text-emerald-600 dark:text-emerald-400'
-                      }`}>
+                      <p className={cn(
+                        "text-lg font-bold",
+                        transaction.amount < 0 ? 'text-destructive' : 'text-success'
+                      )}>
                         R$ {transaction.amount.toFixed(2)}
                       </p>
                     </div>
@@ -577,15 +500,15 @@ export default function DashboardPage() {
               <Link href="/transactions">
                 <Button 
                   variant="outline" 
-                  className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                  className="button-modern"
                 >
                   Ver todas as transações
                 </Button>
               </Link>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </ModernCardContent>
+      </ModernCard>
     </div>
   );
 }
