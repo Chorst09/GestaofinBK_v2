@@ -23,13 +23,18 @@ function useLocalStorage<T>(
   // Effect for initial hydration from localStorage.
   // This runs only once on the client-side after mount.
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsReady(true);
+      return;
+    }
+    
     try {
       const item = window.localStorage.getItem(key);
       if (item) {
         setStoredValue(JSON.parse(item));
       }
     } catch (error) {
-      console.warn(`Error reading localStorage key “${key}”:`, error);
+      console.warn(`Error reading localStorage key "${key}":`, error);
     } finally {
       setIsReady(true);
     }
@@ -37,7 +42,9 @@ function useLocalStorage<T>(
 
   // This effect listens for storage events to sync state.
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent | CustomEvent) => {
+    if (typeof window === 'undefined') return;
+    
+    const handleStorageChange = (event: Event) => {
       const eventKey = (event as StorageEvent).key || (event as CustomEvent).detail?.key;
 
       if (eventKey === key) {
@@ -49,7 +56,7 @@ function useLocalStorage<T>(
             setStoredValue(initialValue);
           }
         } catch (error) {
-          console.warn(`Error re-reading localStorage key “${key}” on storage event:`, error);
+          console.warn(`Error re-reading localStorage key "${key}" on storage event:`, error);
         }
       }
     };
@@ -67,6 +74,8 @@ function useLocalStorage<T>(
 
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
+      if (typeof window === 'undefined') return;
+      
       try {
         const valueToStore = value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
@@ -74,7 +83,7 @@ function useLocalStorage<T>(
         // Manually dispatch a custom event to notify other instances of this hook.
         window.dispatchEvent(new CustomEvent(CUSTOM_STORAGE_EVENT_NAME, { detail: { key } }));
       } catch (error: any) {
-        console.warn(`Error setting localStorage key “${key}”:`, error);
+        console.warn(`Error setting localStorage key "${key}":`, error);
         
         if (error.name === 'QuotaExceededError' || (error.code && (error.code === 22 || error.code === 1014))) {
             toast({

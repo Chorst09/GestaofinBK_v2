@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ModernCard, ModernCardContent, ModernCardDescription, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
 import { Calendar, Gauge, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { format, addMonths, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { VehicleExpense, Vehicle } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface NextRevisionCardProps {
   vehicle: Vehicle;
@@ -86,26 +87,26 @@ export function NextRevisionCard({ vehicle, expenses }: NextRevisionCardProps) {
   const getStatusColor = () => {
     switch (status) {
       case 'overdue':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'status-error border-2';
       case 'soon':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+        return 'status-warning border-2';
       case 'ok':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'status-success border-2';
       default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
+        return 'border-border';
     }
   };
 
   const getStatusIcon = () => {
     switch (status) {
       case 'overdue':
-        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+        return <AlertTriangle className="h-5 w-5 text-destructive animate-pulse-subtle" />;
       case 'soon':
-        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+        return <AlertTriangle className="h-5 w-5 text-warning" />;
       case 'ok':
-        return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+        return <CheckCircle2 className="h-5 w-5 text-success" />;
       default:
-        return <Calendar className="h-5 w-5 text-gray-600" />;
+        return <Calendar className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -124,19 +125,19 @@ export function NextRevisionCard({ vehicle, expenses }: NextRevisionCardProps) {
 
   if (!lastRevision) {
     return (
-      <Card className="border-gray-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
+      <ModernCard variant="glass" className="animate-fade-in">
+        <ModernCardHeader className="pb-3">
+          <ModernCardTitle className="text-sm font-medium flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             Próximas Revisões
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </ModernCardTitle>
+        </ModernCardHeader>
+        <ModernCardContent>
           <p className="text-sm text-muted-foreground">
             Nenhuma revisão registrada ainda. Adicione uma revisão no histórico de manutenções para calcular a próxima.
           </p>
-        </CardContent>
-      </Card>
+        </ModernCardContent>
+      </ModernCard>
     );
   }
 
@@ -146,60 +147,78 @@ export function NextRevisionCard({ vehicle, expenses }: NextRevisionCardProps) {
   const kmUntilRevision = nextRevision.byOdometer - currentOdometer;
 
   return (
-    <Card className={`border-2 ${getStatusColor()}`}>
-      <CardHeader className="pb-3">
+    <ModernCard 
+      variant="gradient" 
+      className={cn("animate-scale-in", getStatusColor())}
+    >
+      <ModernCardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <ModernCardTitle className="text-sm font-medium flex items-center gap-2">
             {getStatusIcon()}
             Próximas Revisões
-          </CardTitle>
-          <Badge variant={status === 'overdue' ? 'destructive' : status === 'soon' ? 'default' : 'secondary'}>
+          </ModernCardTitle>
+          <Badge 
+            variant={status === 'overdue' ? 'destructive' : status === 'soon' ? 'default' : 'secondary'}
+            className="badge-modern"
+          >
             {getStatusText()}
           </Badge>
         </div>
-        <CardDescription className="text-xs">
+        <ModernCardDescription className="text-xs">
           Baseado na última revisão em {format(new Date(lastRevision.date), 'dd/MM/yyyy', { locale: ptBR })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+        </ModernCardDescription>
+      </ModernCardHeader>
+      <ModernCardContent className="space-y-3">
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 transition-all hover:bg-muted">
+            <div className="p-2 rounded-lg bg-background">
+              <Calendar className="h-4 w-4 text-primary" />
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Por Data (12 meses)</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-semibold">Por Data (12 meses)</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 {format(nextRevision.byDate, 'dd/MM/yyyy', { locale: ptBR })}
               </p>
-              <p className={`text-xs font-medium mt-1 ${daysUntilRevision < 0 ? 'text-red-600' : daysUntilRevision <= 30 ? 'text-yellow-600' : 'text-green-600'}`}>
+              <p className={cn(
+                "text-xs font-medium mt-2 px-2 py-1 rounded-md inline-block",
+                daysUntilRevision < 0 ? 'status-error' : daysUntilRevision <= 30 ? 'status-warning' : 'status-success'
+              )}>
                 {daysUntilRevision < 0 
-                  ? `Atrasado há ${Math.abs(daysUntilRevision)} dias` 
-                  : `Faltam ${daysUntilRevision} dias`}
+                  ? `⚠️ Atrasado há ${Math.abs(daysUntilRevision)} dias` 
+                  : `✓ Faltam ${daysUntilRevision} dias`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-start gap-2">
-            <Gauge className="h-4 w-4 mt-0.5 text-muted-foreground" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 transition-all hover:bg-muted">
+            <div className="p-2 rounded-lg bg-background">
+              <Gauge className="h-4 w-4 text-accent" />
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Por Quilometragem (10.000 km)</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-semibold">Por Quilometragem (10.000 km)</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 {nextRevision.byOdometer.toLocaleString('pt-BR')} km
               </p>
-              <p className={`text-xs font-medium mt-1 ${kmUntilRevision < 0 ? 'text-red-600' : kmUntilRevision <= 1000 ? 'text-yellow-600' : 'text-green-600'}`}>
+              <p className={cn(
+                "text-xs font-medium mt-2 px-2 py-1 rounded-md inline-block",
+                kmUntilRevision < 0 ? 'status-error' : kmUntilRevision <= 1000 ? 'status-warning' : 'status-success'
+              )}>
                 {kmUntilRevision < 0 
-                  ? `Atrasado há ${Math.abs(kmUntilRevision).toLocaleString('pt-BR')} km` 
-                  : `Faltam ${kmUntilRevision.toLocaleString('pt-BR')} km`}
+                  ? `⚠️ Atrasado há ${Math.abs(kmUntilRevision).toLocaleString('pt-BR')} km` 
+                  : `✓ Faltam ${kmUntilRevision.toLocaleString('pt-BR')} km`}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium">Odômetro atual:</span> {currentOdometer.toLocaleString('pt-BR')} km
-          </p>
+        <div className="pt-3 border-t border-border/50">
+          <div className="flex items-center gap-2 text-xs">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse-subtle"></div>
+            <span className="font-medium">Odômetro atual:</span>
+            <span className="text-muted-foreground">{currentOdometer.toLocaleString('pt-BR')} km</span>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </ModernCardContent>
+    </ModernCard>
   );
 }

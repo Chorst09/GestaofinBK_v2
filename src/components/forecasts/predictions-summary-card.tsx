@@ -48,6 +48,8 @@ export function PredictionsSummaryCard() {
     });
 
     React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const savedPredictions = localStorage.getItem('financeiro-zen-predictions');
         if (savedPredictions) {
             try {

@@ -41,6 +41,8 @@ export function PredictionsCard() {
 
     // Carregar dados salvos do localStorage na inicialização
     React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const savedPredictions = localStorage.getItem('financeiro-zen-predictions');
         if (savedPredictions) {
             try {
@@ -55,7 +57,9 @@ export function PredictionsCard() {
 
     const handleSave = () => {
         setPredictions(editValues);
-        localStorage.setItem('financeiro-zen-predictions', JSON.stringify(editValues));
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('financeiro-zen-predictions', JSON.stringify(editValues));
+        }
         setIsEditing(false);
         toast({
             title: "Previsões salvas!",

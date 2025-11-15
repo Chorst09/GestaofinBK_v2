@@ -5,107 +5,122 @@
 
 @layer base {
   :root {
-    --background: 205 60% 97%; /* Very Light Cyan-Blue */
-    --foreground: 215 35% 25%; /* Dark Slate Blue */
+    --background: 210 40% 98%; /* Softer Light Background */
+    --foreground: 222 47% 11%; /* Rich Dark Blue-Black */
 
-    --muted: 205 50% 92%; /* Light Muted Cyan-Blue */
-    --muted-foreground: 210 25% 45%; /* Muted Blue-Gray */
+    --muted: 210 40% 96%; /* Subtle Muted Background */
+    --muted-foreground: 215 16% 47%; /* Balanced Muted Text */
 
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 215 35% 25%; /* Dark Slate Blue */
+    --popover: 0 0% 100%; /* Pure White */
+    --popover-foreground: 222 47% 11%; /* Rich Dark */
 
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 215 35% 25%; /* Dark Slate Blue */
+    --card: 0 0% 100%; /* Pure White Cards */
+    --card-foreground: 222 47% 11%; /* Rich Dark */
 
-    --border: 205 30% 88%; /* Light Blue Border */
-    --input: 205 40% 94%; /* Very Light Blue Input */
+    --border: 214 32% 91%; /* Soft Border */
+    --input: 214 32% 91%; /* Soft Input Background */
 
-    --primary: 220 70% 50%; /* Strong Blue */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 221 83% 53%; /* Vibrant Modern Blue */
+    --primary-foreground: 210 40% 98%; /* Light Text on Primary */
 
-    --secondary: 210 60% 93%; /* Lighter version of primary for secondary elements */
-    --secondary-foreground: 220 40% 30%; /* Darker blue text for secondary */
+    --secondary: 210 40% 96%; /* Subtle Secondary */
+    --secondary-foreground: 222 47% 11%; /* Dark Text */
 
-    --accent: 124 39% 64%; /* Gentle Green */
-    --accent-foreground: 124 100% 20%; /* Dark Green */
+    --accent: 142 76% 36%; /* Modern Green */
+    --accent-foreground: 144 61% 98%; /* Light Green Text */
 
-    --destructive: 0 84% 60%; /* Standard Red */
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%; /* Modern Red */
+    --destructive-foreground: 0 0% 100%; /* White Text */
 
-    --ring: 220 70% 55%; /* Focus ring, slightly lighter primary */
-    --radius: 0.5rem;
+    --ring: 221 83% 53%; /* Primary Ring */
+    --radius: 0.75rem; /* Slightly more rounded */
 
-    /* Chart Colors for Light Theme */
-    --chart-1: 220 70% 50%;   /* Primary Blue */
-    --chart-2: 124 39% 64%;   /* Accent Green */
-    --chart-3: 200 75% 65%;   /* Lighter Sky Blue */
-    --chart-4: 45 85% 55%;    /* Warm Gold/Yellow */
-    --chart-5: 190 65% 55%;   /* Tealish Blue */
-    --chart-6: 230 60% 70%;   /* Lavender Blue */
-    --chart-7: 55 75% 65%;    /* Warmer Yellow/Light Orange */
-    --chart-8: 170 50% 65%;   /* Seafoam */
-    --chart-9: 330 70% 75%;   /* Light Pink (warmish) */
-    --chart-10: 210 50% 70%;  /* Soft Blue */
+    /* Chart Colors for Light Theme - Modern Palette */
+    --chart-1: 221 83% 53%;   /* Primary Blue */
+    --chart-2: 142 76% 36%;   /* Accent Green */
+    --chart-3: 199 89% 48%;   /* Cyan Blue */
+    --chart-4: 45 93% 47%;    /* Vibrant Gold */
+    --chart-5: 262 52% 47%;   /* Purple */
+    --chart-6: 340 82% 52%;   /* Pink/Magenta */
+    --chart-7: 24 95% 53%;    /* Orange */
+    --chart-8: 173 58% 39%;   /* Teal */
+    --chart-9: 280 61% 50%;   /* Violet */
+    --chart-10: 14 91% 51%;   /* Red-Orange */
 
-
-    --sidebar-background: 205 45% 95%; /* Light blue-gray for sidebar */
-    --sidebar-foreground: 215 30% 35%;
-    --sidebar-primary: 220 70% 50%; 
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 205 40% 88%; 
-    --sidebar-accent-foreground: 215 35% 25%;
-    --sidebar-border: 205 30% 80%;
+    --sidebar-background: 0 0% 100%; /* White Sidebar */
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%; 
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%; 
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    
+    /* Success and Warning Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 144 61% 98%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 222 47% 11%;
+    --info: 199 89% 48%;
+    --info-foreground: 210 40% 98%;
   }
 
   .dark {
-    --background: 220 30% 10%; /* Very Dark Blue - Darkened further */
-    --foreground: 30 40% 92%; /* Light Warm Off-White - Slightly brightened for contrast */
+    --background: 222 47% 11%; /* Rich Dark Background */
+    --foreground: 210 40% 98%; /* Soft Light Text */
 
-    --muted: 220 25% 16%; /* Darker Muted Blue - Adjusted for new background */
-    --muted-foreground: 220 15% 60%; /* Lighter Muted Blue-Gray */
+    --muted: 217 33% 17%; /* Subtle Dark Muted */
+    --muted-foreground: 215 20% 65%; /* Balanced Muted Text */
 
-    --popover: 220 28% 9%; /* Even Darker Blue for Popovers - Almost background color */
-    --popover-foreground: 30 40% 92%;
+    --popover: 224 71% 4%; /* Deep Dark Popover */
+    --popover-foreground: 210 40% 98%; /* Light Text */
 
-    --card: 220 27% 13%; /* Dark Blue for Cards - Darkened */
-    --card-foreground: 30 40% 92%;
+    --card: 224 71% 4%; /* Deep Dark Cards */
+    --card-foreground: 210 40% 98%; /* Light Text */
 
-    --border: 220 20% 28%; /* Subtle Dark Blue Border - Adjusted */
-    --input: 220 20% 22%; /* Dark Blue Input Background - Adjusted */
+    --border: 215 28% 17%; /* Subtle Border */
+    --input: 215 28% 17%; /* Dark Input */
 
-    --primary: 215 65% 58%; /* Vibrant Darker Blue */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 217 91% 60%; /* Bright Modern Blue */
+    --primary-foreground: 222 47% 11%; /* Dark Text on Primary */
 
-    --secondary: 215 35% 35%; /* Muted Dark Blue for secondary */
-    --secondary-foreground: 210 25% 88%; /* Light Blue-Gray */
+    --secondary: 217 33% 17%; /* Dark Secondary */
+    --secondary-foreground: 210 40% 98%; /* Light Text */
 
-    --accent: 124 45% 55%; /* Brighter Gentle Green */
-    --accent-foreground: 124 10% 95%; /* Light Green */
+    --accent: 142 76% 36%; /* Vibrant Green */
+    --accent-foreground: 144 61% 98%; /* Light Text */
 
-    --destructive: 0 75% 55%; /* Slightly deeper red for dark mode */
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%; /* Deep Red */
+    --destructive-foreground: 210 40% 98%; /* Light Text */
 
-    --ring: 215 65% 65%; /* Lighter primary for focus ring */
+    --ring: 217 91% 60%; /* Bright Ring */
     
-    /* Chart Colors for Dark Theme */
-    --chart-1: 215 65% 58%;   /* Primary Dark Blue */
-    --chart-2: 124 45% 55%;   /* Accent Green */
-    --chart-3: 205 70% 70%;   /* Lighter Complementary Blue */
-    --chart-4: 45 85% 55%;    /* Warm Gold/Yellow */
-    --chart-5: 190 60% 60%;   /* Tealish Blue */
-    --chart-6: 225 50% 75%;   /* Softer Blue */
-    --chart-7: 55 75% 65%;    /* Warmer Yellow/Light Orange */
-    --chart-8: 180 45% 70%;   /* Muted Teal */
-    --chart-9: 25 80% 70%;    /* Light Orange/Peach */
-    --chart-10: 230 40% 80%;  /* Pale Lavender Blue */
+    /* Chart Colors for Dark Theme - Vibrant Modern Palette */
+    --chart-1: 217 91% 60%;   /* Bright Blue */
+    --chart-2: 142 71% 45%;   /* Vibrant Green */
+    --chart-3: 199 89% 48%;   /* Cyan */
+    --chart-4: 45 93% 58%;    /* Gold */
+    --chart-5: 262 52% 60%;   /* Purple */
+    --chart-6: 340 82% 62%;   /* Pink */
+    --chart-7: 24 95% 63%;    /* Orange */
+    --chart-8: 173 58% 49%;   /* Teal */
+    --chart-9: 280 61% 60%;   /* Violet */
+    --chart-10: 14 91% 61%;   /* Red-Orange */
 
-    --sidebar-background: 220 26% 8%; /* Slightly different very dark blue for sidebar */
-    --sidebar-foreground: 30 40% 88%;
-    --sidebar-primary: 215 65% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 20%; /* Subtle accent for hover states */
-    --sidebar-accent-foreground: 30 40% 92%;
-    --sidebar-border: 220 20% 25%;
+    --sidebar-background: 224 71% 4%; /* Deep Dark Sidebar */
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%; 
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 17%;
+    
+    /* Success and Warning Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 144 61% 98%;
+    --warning: 45 93% 58%;
+    --warning-foreground: 222 47% 11%;
+    --info: 199 89% 48%;
+    --info-foreground: 210 40% 98%;
   }
 }
 
@@ -115,5 +130,223 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Modern Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.4s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+  }
+  
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* Card Enhancements */
+@layer components {
+  .card-modern {
+    @apply transition-all duration-300 ease-in-out;
+    @apply hover:shadow-lg hover:-translate-y-1;
+    @apply border border-border/50;
+    @apply backdrop-blur-sm;
+  }
+  
+  .card-gradient {
+    @apply relative overflow-hidden;
+  }
+  
+  .card-gradient::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.05) 0%,
+      transparent 50%,
+      hsl(var(--accent) / 0.05) 100%
+    );
+  }
+  
+  .card-gradient:hover::before {
+    @apply opacity-100;
+  }
+  
+  .glass-effect {
+    @apply bg-background/80 backdrop-blur-md border border-border/50;
+  }
+  
+  .gradient-border {
+    @apply relative;
+    background: linear-gradient(var(--background), var(--background)) padding-box,
+                linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) border-box;
+    border: 2px solid transparent;
+  }
+  
+  .stat-card {
+    @apply card-modern card-gradient;
+    @apply p-6 rounded-xl;
+  }
+  
+  .stat-card-value {
+    @apply text-3xl font-bold tracking-tight;
+    @apply bg-gradient-to-br from-foreground to-foreground/70;
+    @apply bg-clip-text text-transparent;
+  }
+  
+  .button-modern {
+    @apply transition-all duration-200 ease-in-out;
+    @apply hover:scale-105 active:scale-95;
+    @apply shadow-sm hover:shadow-md;
+  }
+  
+  .input-modern {
+    @apply transition-all duration-200;
+    @apply focus:ring-2 focus:ring-primary/20;
+    @apply focus:border-primary;
+  }
+  
+  .badge-modern {
+    @apply transition-all duration-200;
+    @apply hover:scale-105;
+    @apply shadow-sm;
+  }
+  
+  /* Smooth Scrolling */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+    @apply hover:bg-muted-foreground/50;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-accent to-primary;
+    @apply bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% center;
+    }
+    50% {
+      background-position: 100% center;
+    }
+  }
+  
+  /* Success/Warning/Error States */
+  .status-success {
+    @apply bg-success/10 text-success border-success/20;
+  }
+  
+  .status-warning {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+  
+  .status-error {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+  
+  .status-info {
+    @apply bg-info/10 text-info border-info/20;
   }
 }
