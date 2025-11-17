@@ -46,46 +46,38 @@ const TOLL_PLAZAS: TollPlaza[] = [
     km: 45
   },
   
-  // EPR IGUAÇU (PR)
+  // EPR IGUAÇU (PR) - Rota Curitiba-Guarapuava
   {
-    name: "Pedágio Balsa Nova",
-    location: { lat: -25.5789, lng: -49.6321 },
-    highway: "BR-277",
-    concessionaire: "EPR Iguaçu",
-    values: { car: 9.20 },
-    km: 42
-  },
-  {
-    name: "Pedágio São Luiz do Purunã",
+    name: "São Luís do Purunã",
     location: { lat: -25.4123, lng: -49.7654 },
     highway: "BR-277",
     concessionaire: "EPR Iguaçu",
-    values: { car: 9.20 },
-    km: 68
+    values: { car: 9.30 },
+    km: 132
   },
   {
-    name: "Pedágio Palmeira",
-    location: { lat: -25.4289, lng: -50.0123 },
+    name: "Porto Amazonas",
+    location: { lat: -25.5456, lng: -49.8923 },
     highway: "BR-277",
     concessionaire: "EPR Iguaçu",
-    values: { car: 9.20 },
-    km: 98
+    values: { car: 11.70 },
+    km: 158
   },
   {
-    name: "Pedágio Prudentópolis",
-    location: { lat: -25.2134, lng: -50.9789 },
-    highway: "BR-277",
-    concessionaire: "EPR Iguaçu",
-    values: { car: 9.20 },
-    km: 185
-  },
-  {
-    name: "Pedágio Irati",
+    name: "Irati",
     location: { lat: -25.4689, lng: -50.6523 },
     highway: "BR-277",
     concessionaire: "EPR Iguaçu",
-    values: { car: 9.20 },
-    km: 145
+    values: { car: 10.90 },
+    km: 250
+  },
+  {
+    name: "Relógio",
+    location: { lat: -25.3234, lng: -51.2456 },
+    highway: "BR-277",
+    concessionaire: "EPR Iguaçu",
+    values: { car: 16.70 },
+    km: 302
   },
   
   // ECOVIA (PR)
