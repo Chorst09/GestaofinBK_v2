@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, LayoutDashboard, List, Upload, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, Tags, LineChart } from 'lucide-react';
+import { Home, LayoutDashboard, List, Upload, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, Tags, LineChart, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -26,6 +26,7 @@ const navItems = [
   { href: '/previsto-vs-realizado', label: 'Previsto x Realizado', icon: ClipboardCheck },
   { href: '/investments', label: 'Investimentos', icon: LineChart },
   { href: '/financial-goals', label: 'Metas Financeiras', icon: Target },
+  { href: '/travel', label: 'Viagens e Lazer', icon: Plane },
   { href: '/credit-cards', label: 'Cartões de Crédito', icon: CreditCardIcon },
   { href: '/bank-accounts', label: 'Contas Bancárias', icon: BankIcon },
   { href: '/vehicles', label: 'Veículos', icon: Car },

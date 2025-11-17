@@ -40,6 +40,7 @@ import { CARD_BRANDS } from './categories';
 import { useAllCategories } from '@/hooks/useAllCategories';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useBankAccounts } from '@/hooks/useBankAccounts';
+import { useTravelEvents } from '@/hooks/useTravelEvents';
 
 const NO_CARD_SELECTED_VALUE = "NO_CARD_SELECTED";
 const NO_BANK_ACCOUNT_SELECTED_VALUE = "NO_BANK_ACCOUNT_SELECTED";
@@ -54,6 +55,7 @@ const formSchema = z.object({
   creditCardId: z.string().optional(),
   cardBrand: z.string().optional(),
   bankAccountId: z.string().optional(),
+  travelId: z.string().optional(),
 });
 
 
@@ -69,6 +71,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
   const { creditCards, getCreditCardById } = useCreditCards();
   const { bankAccounts } = useBankAccounts();
   const { getCategoriesByType, getCategoryByName } = useAllCategories();
+  const { travelEvents } = useTravelEvents();
   
   const transactionValidationSchema = formSchema.refine(data => {
     // Não pode ter um bankAccountId e um creditCardId ao mesmo tempo para despesas.
@@ -93,6 +96,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
           creditCardId: initialData.creditCardId || NO_CARD_SELECTED_VALUE,
           cardBrand: initialData.cardBrand || '',
           bankAccountId: initialData.bankAccountId || NO_BANK_ACCOUNT_SELECTED_VALUE,
+          travelId: initialData.travelId || '',
         }
       : {
           description: '',
@@ -104,6 +108,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
           creditCardId: NO_CARD_SELECTED_VALUE,
           cardBrand: '',
           bankAccountId: NO_BANK_ACCOUNT_SELECTED_VALUE,
+          travelId: '',
         },
   });
 
@@ -188,6 +193,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
       bankAccountId: values.bankAccountId && values.bankAccountId !== NO_BANK_ACCOUNT_SELECTED_VALUE && !isCreditCardExpenseItem
                       ? values.bankAccountId
                       : undefined,
+      travelId: values.travelId || undefined,
     };
 
     try {
@@ -208,6 +214,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
         creditCardId: NO_CARD_SELECTED_VALUE,
         cardBrand: '',
         bankAccountId: NO_BANK_ACCOUNT_SELECTED_VALUE,
+        travelId: '',
       });
       if (onSubmitSuccess) {
         onSubmitSuccess();
@@ -480,6 +487,36 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="travelId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Viagem Associada (Opcional)</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value || ''}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nenhuma viagem" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">Nenhuma</SelectItem>
+                  {travelEvents.map((travel) => (
+                    <SelectItem key={travel.id} value={travel.id}>
+                      {travel.name} - {travel.destination}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" className="w-full">
           {initialData ? 'Atualizar Transação' : 'Adicionar Transação'}
         </Button>

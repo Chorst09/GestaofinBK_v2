@@ -11,6 +11,7 @@ export interface Transaction {
   creditCardId?: string; // ID do cartão de crédito associado, se aplicável
   bankAccountId?: string; // ID da conta bancária associada, se aplicável
   status: 'paid' | 'pending'; // Status da transação: pago ou pendente
+  travelId?: string; // ID da viagem associada, se aplicável
 }
 
 export type TransactionFormData = Omit<Transaction, 'id'>;
@@ -170,6 +171,27 @@ export interface VariableIncomeAsset {
 }
 export type VariableIncomeAssetFormData = Omit<VariableIncomeAsset, 'id'>;
 
+// Travel Planning Types
+export type TravelCategory = 'hospedagem' | 'aereo' | 'alimentacao' | 'passeios' | 'transporte' | 'compras' | 'outros';
+
+export interface TravelBudgetItem {
+  category: TravelCategory;
+  budgetedAmount: number;
+}
+
+export interface TravelEvent {
+  id: string;
+  name: string;
+  destination: string;
+  startDate: string; // ISO string
+  endDate: string; // ISO string
+  totalBudget: number;
+  budgetByCategory: TravelBudgetItem[];
+  description?: string;
+  status: 'planned' | 'ongoing' | 'completed';
+}
+export type TravelEventFormData = Omit<TravelEvent, 'id'>;
+
 
 // ---- Backup & Google Drive Types ----
 
@@ -192,6 +214,7 @@ export interface BackupData {
     customCategories: CustomCategory[];
     fixedIncomeAssets: FixedIncomeAsset[];
     variableIncomeAssets: VariableIncomeAsset[];
+    travelEvents: TravelEvent[];
 }
 
 // Define the shape of the context value
@@ -222,6 +245,7 @@ export interface DataBackupContextType {
     setCustomCategories: (value: CustomCategory[] | ((val: CustomCategory[]) => CustomCategory[])) => void;
     setFixedIncomeAssets: (value: FixedIncomeAsset[] | ((val: FixedIncomeAsset[]) => FixedIncomeAsset[])) => void;
     setVariableIncomeAssets: (value: VariableIncomeAsset[] | ((val: VariableIncomeAsset[]) => VariableIncomeAsset[])) => void;
+    setTravelEvents: (value: TravelEvent[] | ((val: TravelEvent[]) => TravelEvent[])) => void;
   };
 }
 
