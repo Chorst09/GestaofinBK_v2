@@ -2,6 +2,13 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Declaração de tipo para Google Maps
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,53 +55,83 @@ export function TravelRouteMap({
   const [editingPoint, setEditingPoint] = React.useState<TravelRoutePoint | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const mapRef = React.useRef<HTMLDivElement>(null);
-  const [map, setMap] = React.useState<google.maps.Map | null>(null);
-  const [directionsRenderer, setDirectionsRenderer] = React.useState<google.maps.DirectionsRenderer | null>(null);
-  const [markers, setMarkers] = React.useState<google.maps.Marker[]>([]);
+  const [map, setMap] = React.useState<any>(null);
+  const [directionsRenderer, setDirectionsRenderer] = React.useState<any>(null);
+  const [markers, setMarkers] = React.useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   // Inicializar Google Maps
   React.useEffect(() => {
-    if (!mapRef.current || map) return;
+    if (!mapRef.current || map || isLoaded) return;
+
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      setLoadError('Chave da API do Google Maps não configurada. Configure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY no arquivo .env.local');
+      return;
+    }
 
     const initMap = () => {
-      const newMap = new google.maps.Map(mapRef.current!, {
-        center: { lat: -14.235, lng: -51.925 }, // Centro do Brasil
-        zoom: 4,
-        mapTypeControl: true,
-        streetViewControl: false,
-      });
+      try {
+        if (typeof window === 'undefined' || !window.google) {
+          return;
+        }
 
-      const renderer = new google.maps.DirectionsRenderer({
-        map: newMap,
-        suppressMarkers: false,
-      });
+        const newMap = new window.google.maps.Map(mapRef.current!, {
+          center: { lat: -14.235, lng: -51.925 }, // Centro do Brasil
+          zoom: 4,
+          mapTypeControl: true,
+          streetViewControl: false,
+        });
 
-      setMap(newMap);
-      setDirectionsRenderer(renderer);
+        const renderer = new window.google.maps.DirectionsRenderer({
+          map: newMap,
+          suppressMarkers: false,
+        });
+
+        setMap(newMap);
+        setDirectionsRenderer(renderer);
+        setIsLoaded(true);
+      } catch (error) {
+        console.error('Erro ao inicializar mapa:', error);
+        setLoadError('Erro ao carregar o mapa. Verifique sua conexão e a chave da API.');
+      }
     };
 
-    if (typeof google !== 'undefined') {
+    if (typeof window !== 'undefined' && window.google && window.google.maps) {
       initMap();
     } else {
+      // Verificar se o script já está sendo carregado
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      
+      if (existingScript) {
+        existingScript.addEventListener('load', initMap);
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = initMap;
+      script.onerror = () => {
+        setLoadError('Falha ao carregar o Google Maps. Verifique sua chave de API.');
+      };
       document.head.appendChild(script);
     }
-  }, [map]);
+  }, [map, isLoaded]);
 
   // Atualizar rota no mapa quando os pontos mudarem
   React.useEffect(() => {
-    if (!map || !directionsRenderer || points.length < 2) {
+    if (!map || !directionsRenderer || points.length < 2 || !window.google) {
       // Limpar marcadores se houver menos de 2 pontos
       markers.forEach(marker => marker.setMap(null));
       setMarkers([]);
       return;
     }
 
-    const directionsService = new google.maps.DirectionsService();
+    const directionsService = new window.google.maps.DirectionsService();
     
     const origin = { lat: points[0].lat, lng: points[0].lng };
     const destination = { lat: points[points.length - 1].lat, lng: points[points.length - 1].lng };
@@ -108,9 +145,9 @@ export function TravelRouteMap({
         origin,
         destination,
         waypoints,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: window.google.maps.TravelMode.DRIVING,
       },
-      (result, status) => {
+      (result: any, status: any) => {
         if (status === 'OK' && result) {
           directionsRenderer.setDirections(result);
         } else {
@@ -118,18 +155,25 @@ export function TravelRouteMap({
         }
       }
     );
-  }, [points, map, directionsRenderer]);
+  }, [points, map, directionsRenderer, markers]);
 
   const searchPlace = async () => {
-    if (!map || !searchQuery.trim()) return;
+    if (!map || !searchQuery.trim() || !window.google) {
+      toast({
+        variant: "destructive",
+        title: "Mapa não carregado",
+        description: "Aguarde o carregamento do mapa antes de buscar locais.",
+      });
+      return;
+    }
 
-    const service = new google.maps.places.PlacesService(map);
+    const service = new window.google.maps.places.PlacesService(map);
     
     service.textSearch(
       {
         query: searchQuery,
       },
-      (results, status) => {
+      (results: any, status: any) => {
         if (status === 'OK' && results && results[0]) {
           const place = results[0];
           const location = place.geometry?.location;
@@ -277,10 +321,27 @@ export function TravelRouteMap({
           </div>
 
           {/* Mapa */}
-          <div 
-            ref={mapRef} 
-            className="w-full h-[400px] rounded-lg border"
-          />
+          {loadError ? (
+            <div className="w-full h-[400px] rounded-lg border flex items-center justify-center bg-muted">
+              <div className="text-center p-6 max-w-md">
+                <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Erro ao carregar mapa</h3>
+                <p className="text-sm text-muted-foreground">{loadError}</p>
+              </div>
+            </div>
+          ) : !isLoaded ? (
+            <div className="w-full h-[400px] rounded-lg border flex items-center justify-center bg-muted">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-sm text-muted-foreground">Carregando mapa...</p>
+              </div>
+            </div>
+          ) : (
+            <div 
+              ref={mapRef} 
+              className="w-full h-[400px] rounded-lg border"
+            />
+          )}
 
           {/* Lista de Pontos */}
           {points.length > 0 && (
