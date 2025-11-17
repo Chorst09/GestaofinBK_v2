@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Calculator, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Vehicle } from '@/lib/types';
@@ -41,6 +42,7 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
   const [fuelPrice, setFuelPrice] = React.useState<string>('');
   const [origin, setOrigin] = React.useState('');
   const [destination, setDestination] = React.useState('');
+  const [isRoundTrip, setIsRoundTrip] = React.useState(false);
   const [map, setMap] = React.useState<google.maps.Map | null>(null);
   const [directionsResponse, setDirectionsResponse] = React.useState<google.maps.DirectionsResult | null>(null);
   const [autoFuelData, setAutoFuelData] = React.useState<{ avgConsumption: number; lastPrice: number } | null>(null);
@@ -161,17 +163,23 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
           const route = result.routes[0];
           const leg = route.legs[0];
           
-          const distanceKm = (leg.distance?.value || 0) / 1000;
-          const durationSeconds = leg.duration?.value || 0;
+          let distanceKm = (leg.distance?.value || 0) / 1000;
+          let durationSeconds = leg.duration?.value || 0;
           const consumption = parseFloat(fuelConsumption);
           const price = parseFloat(fuelPrice);
+
+          // Se for ida e volta, dobrar distância e tempo
+          const tripMultiplier = isRoundTrip ? 2 : 1;
+          distanceKm = distanceKm * tripMultiplier;
+          durationSeconds = durationSeconds * tripMultiplier;
 
           // Calcular combustível
           const litersNeeded = distanceKm / consumption;
           const fuelCost = litersNeeded * price;
 
-          // Estimar pedágios (aproximação baseada na distância)
-          const tollCost = estimateTollCost(distanceKm, origin, destination);
+          // Estimar pedágios
+          const tollData = estimateTollCost(distanceKm / tripMultiplier, origin, destination);
+          const tollCost = tollData.total * tripMultiplier;
 
           const simulationResult = {
             vehicle: vehicles.find(v => v.id === selectedVehicle),
@@ -184,13 +192,15 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
             tollCost: tollCost.toFixed(2),
             totalCost: (fuelCost + tollCost).toFixed(2),
             route: result,
+            isRoundTrip,
+            tollPlazas: tollData.plazas,
           };
 
           onSimulate(simulationResult);
           
           toast({
             title: "Rota calculada!",
-            description: `${distanceKm.toFixed(0)} km • R$ ${(fuelCost + tollCost).toFixed(2)}`,
+            description: `${distanceKm.toFixed(0)} km${isRoundTrip ? ' (ida e volta)' : ''} • R$ ${(fuelCost + tollCost).toFixed(2)}`,
           });
         } else {
           toast({
@@ -203,19 +213,61 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
     );
   };
 
-  const estimateTollCost = (distanceKm: number, origin: string, destination: string): number => {
-    // Estimativa baseada em rodovias brasileiras
-    // Média de R$ 0,15 por km em rodovias pedagiadas
-    const avgTollPerKm = 0.15;
+  const estimateTollCost = (distanceKm: number, origin: string, destination: string) => {
+    // Base de dados simplificada de pedágios em rodovias principais
+    const tollPlazas: Array<{ name: string; value: number; route: string }> = [];
     
-    // Verificar se é viagem interestadual (mais pedágios)
-    const isInterstate = origin.toLowerCase().includes('sp') && destination.toLowerCase().includes('rj') ||
-                         origin.toLowerCase().includes('rj') && destination.toLowerCase().includes('sp');
+    // Detectar rota aproximada baseada em origem/destino
+    const originLower = origin.toLowerCase();
+    const destLower = destination.toLowerCase();
     
-    if (distanceKm < 50) return 0; // Viagens curtas geralmente não têm pedágio
-    if (distanceKm < 150) return distanceKm * 0.08; // Viagens médias
+    // SP - RJ (Via Dutra)
+    if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
+        (destLower.includes('rio de janeiro') || destLower.includes('rj'))) {
+      tollPlazas.push(
+        { name: 'Pedágio Jacareí', value: 8.70, route: 'Via Dutra' },
+        { name: 'Pedágio Moreira César', value: 8.70, route: 'Via Dutra' },
+        { name: 'Pedágio Guararema', value: 8.70, route: 'Via Dutra' },
+        { name: 'Pedágio Santa Isabel', value: 8.70, route: 'Via Dutra' },
+        { name: 'Pedágio Arujá', value: 8.70, route: 'Via Dutra' }
+      );
+    }
+    // SP - Campinas
+    else if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
+             (destLower.includes('campinas'))) {
+      tollPlazas.push(
+        { name: 'Pedágio Jundiaí', value: 7.50, route: 'Anhanguera' },
+        { name: 'Pedágio Campo Limpo', value: 7.50, route: 'Anhanguera' }
+      );
+    }
+    // SP - Santos
+    else if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
+             (destLower.includes('santos') || destLower.includes('guarujá'))) {
+      tollPlazas.push(
+        { name: 'Pedágio Riacho Grande', value: 6.80, route: 'Anchieta/Imigrantes' },
+        { name: 'Pedágio Piassaguera', value: 6.80, route: 'Anchieta/Imigrantes' }
+      );
+    }
+    // Estimativa genérica para outras rotas
+    else if (distanceKm > 50) {
+      const numTolls = Math.floor(distanceKm / 80); // Aproximadamente 1 pedágio a cada 80km
+      const avgTollValue = 8.50;
+      
+      for (let i = 1; i <= numTolls; i++) {
+        tollPlazas.push({
+          name: `Pedágio ${i}`,
+          value: avgTollValue,
+          route: 'Estimativa'
+        });
+      }
+    }
     
-    return distanceKm * (isInterstate ? 0.18 : avgTollPerKm); // Viagens longas
+    const totalToll = tollPlazas.reduce((sum, toll) => sum + toll.value, 0);
+    
+    return {
+      total: totalToll,
+      plazas: tollPlazas
+    };
   };
 
   const formatDuration = (seconds: number): string => {
@@ -327,6 +379,19 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
             placeholder="Ex: Rio de Janeiro, RJ"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
+          />
+        </div>
+
+        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+          <div className="space-y-0.5">
+            <Label>Ida e Volta</Label>
+            <p className="text-xs text-muted-foreground">
+              Calcular custos para viagem de ida e volta
+            </p>
+          </div>
+          <Switch
+            checked={isRoundTrip}
+            onCheckedChange={setIsRoundTrip}
           />
         </div>
 
