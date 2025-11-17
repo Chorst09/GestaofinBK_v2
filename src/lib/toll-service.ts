@@ -71,6 +71,22 @@ const TOLL_PLAZAS: TollPlaza[] = [
     values: { car: 9.20 },
     km: 98
   },
+  {
+    name: "Pedágio Prudentópolis",
+    location: { lat: -25.2134, lng: -50.9789 },
+    highway: "BR-277",
+    concessionaire: "EPR Iguaçu",
+    values: { car: 9.20 },
+    km: 185
+  },
+  {
+    name: "Pedágio Irati",
+    location: { lat: -25.4689, lng: -50.6523 },
+    highway: "BR-277",
+    concessionaire: "EPR Iguaçu",
+    values: { car: 9.20 },
+    km: 145
+  },
   
   // ECOVIA (PR)
   {
