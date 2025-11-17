@@ -350,3 +350,57 @@
     @apply bg-info/10 text-info border-info/20;
   }
 }
+
+/* Animações para o módulo de viagens */
+@keyframes wave {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(-25px) translateY(-5px); }
+}
+
+@keyframes wave-slow {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(25px) translateY(-8px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes fly {
+  0% { transform: translateX(-100px) translateY(0); }
+  100% { transform: translateX(calc(100vw + 100px)) translateY(-50px); }
+}
+
+.animate-wave {
+  animation: wave 8s ease-in-out infinite;
+}
+
+.animate-wave-slow {
+  animation: wave-slow 12s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.animate-fly {
+  animation: fly 20s linear infinite;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}

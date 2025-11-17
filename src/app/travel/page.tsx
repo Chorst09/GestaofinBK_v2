@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TravelForm } from '@/components/travel/travel-form';
+import { TravelHero } from '@/components/travel/travel-hero';
 import type { TravelEvent } from '@/lib/types';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -131,13 +132,9 @@ export default function TravelPage() {
 
   return (
     <div className="space-y-8">
+      <TravelHero />
+      
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-headline font-bold tracking-tight">Planejamento de Viagens</h1>
-          <p className="text-muted-foreground mt-2">
-            Planeje, acompanhe e controle os gastos das suas viagens
-          </p>
-        </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleOpenFormForAdd}>
