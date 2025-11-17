@@ -97,11 +97,22 @@ export function TravelRouteMapV2({
   }, [points, map]);
 
   const searchPlace = async () => {
-    if (!map || !searchQuery.trim()) return;
+    if (!map || !searchQuery.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Digite um local",
+        description: "Por favor, digite o nome de um local para buscar.",
+      });
+      return;
+    }
 
+    console.log('Buscando:', searchQuery);
     const service = new google.maps.places.PlacesService(map);
     
     service.textSearch({ query: searchQuery }, (results, status) => {
+      console.log('Status da busca:', status);
+      console.log('Resultados:', results);
+      
       if (status === 'OK' && results && results[0]) {
         const place = results[0];
         const location = place.geometry?.location;
@@ -126,11 +137,23 @@ export function TravelRouteMapV2({
             description: `${newPoint.name} foi adicionado à rota.`,
           });
         }
-      } else {
+      } else if (status === 'ZERO_RESULTS') {
         toast({
           variant: "destructive",
           title: "Local não encontrado",
-          description: "Tente buscar com mais detalhes.",
+          description: "Nenhum resultado encontrado. Tente com mais detalhes.",
+        });
+      } else if (status === 'REQUEST_DENIED') {
+        toast({
+          variant: "destructive",
+          title: "Erro de permissão",
+          description: "Places API não está habilitada. Verifique sua configuração no Google Cloud Console.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro na busca",
+          description: `Status: ${status}. Tente novamente.`,
         });
       }
     });
