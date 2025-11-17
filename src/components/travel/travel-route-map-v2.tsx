@@ -51,6 +51,7 @@ export function TravelRouteMapV2({
   const [searchQuery, setSearchQuery] = React.useState('');
   const [map, setMap] = React.useState<google.maps.Map | null>(null);
   const [directionsResponse, setDirectionsResponse] = React.useState<google.maps.DirectionsResult | null>(null);
+  const [routeInfo, setRouteInfo] = React.useState<{ distance: string; duration: string } | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -69,6 +70,7 @@ export function TravelRouteMapV2({
   React.useEffect(() => {
     if (!map || points.length < 2) {
       setDirectionsResponse(null);
+      setRouteInfo(null);
       return;
     }
 
@@ -91,6 +93,25 @@ export function TravelRouteMapV2({
       (result, status) => {
         if (status === 'OK' && result) {
           setDirectionsResponse(result);
+          
+          // Calcular distância e tempo total
+          let totalDistance = 0;
+          let totalDuration = 0;
+          
+          result.routes[0].legs.forEach(leg => {
+            totalDistance += leg.distance?.value || 0;
+            totalDuration += leg.duration?.value || 0;
+          });
+          
+          // Converter para formato legível
+          const distanceKm = (totalDistance / 1000).toFixed(1);
+          const hours = Math.floor(totalDuration / 3600);
+          const minutes = Math.floor((totalDuration % 3600) / 60);
+          
+          setRouteInfo({
+            distance: `${distanceKm} km`,
+            duration: hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`
+          });
         }
       }
     );
@@ -284,6 +305,31 @@ export function TravelRouteMapV2({
             />
           ))}
         </GoogleMap>
+
+        {routeInfo && (
+          <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded">
+                <Navigation className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Distância Total</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{routeInfo.distance}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded">
+                <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Tempo Estimado</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{routeInfo.duration}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {points.length > 0 && (
           <div className="space-y-2">
