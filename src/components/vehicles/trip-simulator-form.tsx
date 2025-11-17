@@ -43,6 +43,7 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
   const [destination, setDestination] = React.useState('');
   const [map, setMap] = React.useState<google.maps.Map | null>(null);
   const [directionsResponse, setDirectionsResponse] = React.useState<google.maps.DirectionsResult | null>(null);
+  const [autoFuelData, setAutoFuelData] = React.useState<{ avgConsumption: number; lastPrice: number } | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -52,6 +53,79 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
   const onLoad = React.useCallback((map: google.maps.Map) => {
     setMap(map);
   }, []);
+
+  // Buscar dados do veículo quando selecionado
+  React.useEffect(() => {
+    if (!selectedVehicle) {
+      setAutoFuelData(null);
+      return;
+    }
+
+    // Buscar dados do localStorage
+    const vehicleExpensesKey = 'financasZenVehicleExpenses';
+    const storedExpenses = localStorage.getItem(vehicleExpensesKey);
+    
+    if (storedExpenses) {
+      try {
+        const expenses = JSON.parse(storedExpenses);
+        const vehicleExpenses = expenses.filter((exp: any) => 
+          exp.vehicleId === selectedVehicle && exp.expenseType === 'fuel'
+        );
+
+        if (vehicleExpenses.length > 0) {
+          // Ordenar por data (mais recente primeiro)
+          vehicleExpenses.sort((a: any, b: any) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+          // Calcular média de consumo (Km/L)
+          const expensesWithConsumption = vehicleExpenses.filter((exp: any) => 
+            exp.liters && exp.liters > 0
+          );
+
+          let avgConsumption = 0;
+          if (expensesWithConsumption.length >= 2) {
+            // Calcular diferença de km entre abastecimentos
+            const consumptions: number[] = [];
+            for (let i = 0; i < expensesWithConsumption.length - 1; i++) {
+              const current = expensesWithConsumption[i];
+              const previous = expensesWithConsumption[i + 1];
+              const kmDiff = current.odometer - previous.odometer;
+              const liters = current.liters;
+              if (kmDiff > 0 && liters > 0) {
+                consumptions.push(kmDiff / liters);
+              }
+            }
+            if (consumptions.length > 0) {
+              avgConsumption = consumptions.reduce((a, b) => a + b, 0) / consumptions.length;
+            }
+          }
+
+          // Último preço por litro
+          const lastExpense = vehicleExpenses[0];
+          const lastPrice = lastExpense.liters > 0 
+            ? lastExpense.amount / lastExpense.liters 
+            : 0;
+
+          if (avgConsumption > 0 && lastPrice > 0) {
+            setAutoFuelData({
+              avgConsumption: parseFloat(avgConsumption.toFixed(2)),
+              lastPrice: parseFloat(lastPrice.toFixed(2))
+            });
+            setFuelConsumption(avgConsumption.toFixed(2));
+            setFuelPrice(lastPrice.toFixed(2));
+            
+            toast({
+              title: "Dados carregados!",
+              description: `Consumo médio: ${avgConsumption.toFixed(1)} Km/L • Último preço: R$ ${lastPrice.toFixed(2)}/L`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do veículo:', error);
+      }
+    }
+  }, [selectedVehicle, toast]);
 
   const calculateRoute = async () => {
     if (!origin || !destination) {
@@ -190,25 +264,51 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Consumo (Km/L)</Label>
+            <Label className="flex items-center gap-2">
+              Consumo (Km/L)
+              {autoFuelData && (
+                <span className="text-xs text-green-600 dark:text-green-400">
+                  • Média calculada
+                </span>
+              )}
+            </Label>
             <Input
               type="number"
               step="0.1"
               placeholder="12.5"
               value={fuelConsumption}
               onChange={(e) => setFuelConsumption(e.target.value)}
+              className={autoFuelData ? 'border-green-300 dark:border-green-700' : ''}
             />
+            {autoFuelData && (
+              <p className="text-xs text-muted-foreground">
+                Baseado em {autoFuelData.avgConsumption} Km/L. Ajuste para consumo em estrada.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label>Preço Combustível (R$/L)</Label>
+            <Label className="flex items-center gap-2">
+              Preço Combustível (R$/L)
+              {autoFuelData && (
+                <span className="text-xs text-green-600 dark:text-green-400">
+                  • Último abastecimento
+                </span>
+              )}
+            </Label>
             <Input
               type="number"
               step="0.01"
               placeholder="5.50"
               value={fuelPrice}
               onChange={(e) => setFuelPrice(e.target.value)}
+              className={autoFuelData ? 'border-green-300 dark:border-green-700' : ''}
             />
+            {autoFuelData && (
+              <p className="text-xs text-muted-foreground">
+                Último preço pago: R$ {autoFuelData.lastPrice}/L
+              </p>
+            )}
           </div>
         </div>
 
