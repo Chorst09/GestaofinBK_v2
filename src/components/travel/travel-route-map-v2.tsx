@@ -74,6 +74,7 @@ export function TravelRouteMapV2({
       return;
     }
 
+    console.log('Calculando rota para', points.length, 'pontos');
     const directionsService = new google.maps.DirectionsService();
     
     const origin = { lat: points[0].lat, lng: points[0].lng };
@@ -83,6 +84,10 @@ export function TravelRouteMapV2({
       stopover: true,
     }));
 
+    console.log('Origem:', origin);
+    console.log('Destino:', destination);
+    console.log('Pontos intermediários:', waypoints.length);
+
     directionsService.route(
       {
         origin,
@@ -91,7 +96,10 @@ export function TravelRouteMapV2({
         travelMode: google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
+        console.log('Status da rota:', status);
+        
         if (status === 'OK' && result) {
+          console.log('Rota calculada com sucesso!', result);
           setDirectionsResponse(result);
           
           // Calcular distância e tempo total
@@ -103,19 +111,44 @@ export function TravelRouteMapV2({
             totalDuration += leg.duration?.value || 0;
           });
           
+          console.log('Distância total (metros):', totalDistance);
+          console.log('Duração total (segundos):', totalDuration);
+          
           // Converter para formato legível
           const distanceKm = (totalDistance / 1000).toFixed(1);
           const hours = Math.floor(totalDuration / 3600);
           const minutes = Math.floor((totalDuration % 3600) / 60);
           
-          setRouteInfo({
+          const routeInfoData = {
             distance: `${distanceKm} km`,
             duration: hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`
+          };
+          
+          console.log('Info da rota:', routeInfoData);
+          setRouteInfo(routeInfoData);
+          
+          toast({
+            title: "Rota calculada!",
+            description: `${routeInfoData.distance} • ${routeInfoData.duration}`,
+          });
+        } else if (status === 'REQUEST_DENIED') {
+          console.error('Directions API não habilitada ou sem permissão');
+          toast({
+            variant: "destructive",
+            title: "Erro ao calcular rota",
+            description: "Directions API não está habilitada. Verifique o Google Cloud Console.",
+          });
+        } else {
+          console.error('Erro ao calcular rota:', status);
+          toast({
+            variant: "destructive",
+            title: "Erro ao calcular rota",
+            description: `Status: ${status}`,
           });
         }
       }
     );
-  }, [points, map]);
+  }, [points, map, toast]);
 
   const searchPlace = async () => {
     if (!map || !searchQuery.trim()) {
