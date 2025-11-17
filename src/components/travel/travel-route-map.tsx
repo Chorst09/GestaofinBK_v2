@@ -79,8 +79,14 @@ export function TravelRouteMap({
         console.log('Tentando inicializar mapa...');
         console.log('window.google disponível:', !!window.google);
         
-        if (typeof window === 'undefined' || !window.google || !mapRef.current) {
+        if (typeof window === 'undefined' || !window.google || !window.google.maps || !mapRef.current) {
           console.log('Google Maps ainda não carregado ou ref não disponível');
+          // Tentar novamente após um pequeno delay
+          setTimeout(() => {
+            if (window.google && window.google.maps && mapRef.current && !map) {
+              initMap();
+            }
+          }, 500);
           return;
         }
 
@@ -125,20 +131,25 @@ export function TravelRouteMap({
         return;
       }
 
+      // Criar callback global para o Google Maps
+      const callbackName = 'initGoogleMaps' + Date.now();
+      (window as any)[callbackName] = () => {
+        console.log('Callback do Google Maps chamado!');
+        initMap();
+        delete (window as any)[callbackName];
+      };
+
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
       script.async = true;
       script.defer = true;
-      script.onload = () => {
-        console.log('Script do Google Maps carregado!');
-        initMap();
-      };
       script.onerror = (error) => {
         console.error('Erro ao carregar script:', error);
         setLoadError('Falha ao carregar o Google Maps. Verifique sua chave de API e se as APIs estão habilitadas.');
+        delete (window as any)[callbackName];
       };
       document.head.appendChild(script);
-      console.log('Script adicionado ao DOM');
+      console.log('Script adicionado ao DOM com callback:', callbackName);
     }
   }, []); // Array vazio - executa apenas uma vez
 
