@@ -2,8 +2,9 @@
 "use client";
 
 import * as React from 'react';
-import { PlusCircle, Car, Edit, Trash2, Fuel } from 'lucide-react';
+import { PlusCircle, Car, Edit, Trash2, Fuel, Calculator } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 import { useVehicles } from '@/hooks/useVehicles';
 import { useVehicleExpenses } from '@/hooks/useVehicleExpenses';
@@ -44,6 +45,7 @@ import { NextRevisionCard } from '@/components/vehicles/next-revision-card'; // 
 import { BankLogo } from '@/components/layout/BankLogo';
 
 export default function VehiclesPage() {
+  const router = useRouter();
   const { vehicles, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
   const { 
     getExpensesForVehicle, 
@@ -182,6 +184,14 @@ export default function VehiclesPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => router.push('/vehicles/trip-simulator')}
+            className="gap-2"
+          >
+            <Calculator className="h-4 w-4" />
+            Simulador de Viagem
+          </Button>
           {vehicles.length > 0 && (
             <Select onValueChange={setSelectedVehicleId} value={selectedVehicleId || ''}>
               <SelectTrigger className="w-full sm:w-[280px] bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 shadow-sm">

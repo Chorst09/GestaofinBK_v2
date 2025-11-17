@@ -1,0 +1,251 @@
+"use client";
+
+import * as React from 'react';
+import { GoogleMap, useJsApiLoader, DirectionsRenderer } from '@react-google-maps/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calculator, MapPin } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import type { Vehicle } from '@/lib/types';
+
+const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"];
+
+const mapContainerStyle = {
+  width: '100%',
+  height: '400px'
+};
+
+const center = {
+  lat: -14.235,
+  lng: -51.925
+};
+
+interface TripSimulatorFormProps {
+  vehicles: Vehicle[];
+  onSimulate: (result: any) => void;
+}
+
+export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormProps) {
+  const { toast } = useToast();
+  const [selectedVehicle, setSelectedVehicle] = React.useState<string>('');
+  const [fuelConsumption, setFuelConsumption] = React.useState<string>('');
+  const [fuelPrice, setFuelPrice] = React.useState<string>('');
+  const [origin, setOrigin] = React.useState('');
+  const [destination, setDestination] = React.useState('');
+  const [map, setMap] = React.useState<google.maps.Map | null>(null);
+  const [directionsResponse, setDirectionsResponse] = React.useState<google.maps.DirectionsResult | null>(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
+
+  const onLoad = React.useCallback((map: google.maps.Map) => {
+    setMap(map);
+  }, []);
+
+  const calculateRoute = async () => {
+    if (!origin || !destination) {
+      toast({
+        variant: "destructive",
+        title: "Campos obrigatórios",
+        description: "Preencha origem e destino",
+      });
+      return;
+    }
+
+    if (!selectedVehicle || !fuelConsumption || !fuelPrice) {
+      toast({
+        variant: "destructive",
+        title: "Dados do veículo",
+        description: "Selecione o veículo e preencha consumo e preço do combustível",
+      });
+      return;
+    }
+
+    const directionsService = new google.maps.DirectionsService();
+
+    directionsService.route(
+      {
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === 'OK' && result) {
+          setDirectionsResponse(result);
+
+          const route = result.routes[0];
+          const leg = route.legs[0];
+          
+          const distanceKm = (leg.distance?.value || 0) / 1000;
+          const durationSeconds = leg.duration?.value || 0;
+          const consumption = parseFloat(fuelConsumption);
+          const price = parseFloat(fuelPrice);
+
+          // Calcular combustível
+          const litersNeeded = distanceKm / consumption;
+          const fuelCost = litersNeeded * price;
+
+          // Estimar pedágios (aproximação baseada na distância)
+          const tollCost = estimateTollCost(distanceKm, origin, destination);
+
+          const simulationResult = {
+            vehicle: vehicles.find(v => v.id === selectedVehicle),
+            origin: leg.start_address,
+            destination: leg.end_address,
+            distance: distanceKm.toFixed(1),
+            duration: formatDuration(durationSeconds),
+            fuelLiters: litersNeeded.toFixed(2),
+            fuelCost: fuelCost.toFixed(2),
+            tollCost: tollCost.toFixed(2),
+            totalCost: (fuelCost + tollCost).toFixed(2),
+            route: result,
+          };
+
+          onSimulate(simulationResult);
+          
+          toast({
+            title: "Rota calculada!",
+            description: `${distanceKm.toFixed(0)} km • R$ ${(fuelCost + tollCost).toFixed(2)}`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Erro ao calcular rota",
+            description: "Verifique os endereços informados",
+          });
+        }
+      }
+    );
+  };
+
+  const estimateTollCost = (distanceKm: number, origin: string, destination: string): number => {
+    // Estimativa baseada em rodovias brasileiras
+    // Média de R$ 0,15 por km em rodovias pedagiadas
+    const avgTollPerKm = 0.15;
+    
+    // Verificar se é viagem interestadual (mais pedágios)
+    const isInterstate = origin.toLowerCase().includes('sp') && destination.toLowerCase().includes('rj') ||
+                         origin.toLowerCase().includes('rj') && destination.toLowerCase().includes('sp');
+    
+    if (distanceKm < 50) return 0; // Viagens curtas geralmente não têm pedágio
+    if (distanceKm < 150) return distanceKm * 0.08; // Viagens médias
+    
+    return distanceKm * (isInterstate ? 0.18 : avgTollPerKm); // Viagens longas
+  };
+
+  const formatDuration = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+  };
+
+  if (!isLoaded) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5" />
+          Configurar Simulação
+        </CardTitle>
+        <CardDescription>
+          Preencha os dados para calcular os custos da viagem
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Veículo</Label>
+          <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o veículo" />
+            </SelectTrigger>
+            <SelectContent>
+              {vehicles.map(vehicle => (
+                <SelectItem key={vehicle.id} value={vehicle.id}>
+                  {vehicle.name} - {vehicle.brand} {vehicle.model}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Consumo (Km/L)</Label>
+            <Input
+              type="number"
+              step="0.1"
+              placeholder="12.5"
+              value={fuelConsumption}
+              onChange={(e) => setFuelConsumption(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Preço Combustível (R$/L)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="5.50"
+              value={fuelPrice}
+              onChange={(e) => setFuelPrice(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Origem</Label>
+          <Input
+            placeholder="Ex: São Paulo, SP"
+            value={origin}
+            onChange={(e) => setOrigin(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Destino</Label>
+          <Input
+            placeholder="Ex: Rio de Janeiro, RJ"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+          />
+        </div>
+
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={4}
+          onLoad={onLoad}
+        >
+          {directionsResponse && (
+            <DirectionsRenderer directions={directionsResponse} />
+          )}
+        </GoogleMap>
+
+        <Button onClick={calculateRoute} className="w-full">
+          <Calculator className="mr-2 h-4 w-4" />
+          Calcular Viagem
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
