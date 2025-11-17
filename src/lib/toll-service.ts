@@ -57,7 +57,7 @@ const TOLL_PLAZAS: TollPlaza[] = [
   },
   {
     name: "Porto Amazonas",
-    location: { lat: -25.5456, lng: -49.8923 },
+    location: { lat: -25.5467, lng: -49.8889 },
     highway: "BR-277",
     concessionaire: "EPR Iguaçu",
     values: { car: 11.70 },
