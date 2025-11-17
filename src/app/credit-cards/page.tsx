@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useCreditCards } from '@/hooks/useCreditCards';
+import { useForecasts } from '@/hooks/useForecasts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -38,6 +39,8 @@ import { PlusCircle, Edit, Trash2, CreditCard as CreditCardIconLucide } from 'lu
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { BankLogo } from '@/components/layout/BankLogo';
+import { getCategoryByName } from '@/components/transactions/categories';
+import { Progress } from '@/components/ui/progress';
 
 export default function CreditCardsPage() {
   const {
@@ -46,9 +49,26 @@ export default function CreditCardsPage() {
     updateCreditCard,
     deleteCreditCard,
   } = useCreditCards();
+  const { forecastItems } = useForecasts();
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [editingCreditCard, setEditingCreditCard] = React.useState<CreditCard | null>(null);
   const { toast } = useToast();
+
+  // Calcular gastos previstos por cartão
+  const cardForecasts = React.useMemo(() => {
+    const forecasts: Record<string, number> = {};
+    
+    forecastItems.forEach(item => {
+      if (item.type === 'expense' && item.creditCardId) {
+        const categoryConfig = getCategoryByName(item.category);
+        if (categoryConfig?.isCreditCard) {
+          forecasts[item.creditCardId] = (forecasts[item.creditCardId] || 0) + Math.abs(item.amount);
+        }
+      }
+    });
+    
+    return forecasts;
+  }, [forecastItems]);
 
   const handleOpenFormForEdit = (card: CreditCard) => {
     setEditingCreditCard(card);
@@ -115,58 +135,89 @@ export default function CreditCardsPage() {
                     <TableHead>Nome do Banco</TableHead>
                     <TableHead>Bandeira</TableHead>
                     <TableHead className="text-center">Dia do Vencimento</TableHead>
-                    <TableHead className="text-right">Limite (R$)</TableHead>
+                    <TableHead className="text-right">Limite Total</TableHead>
+                    <TableHead className="text-right">Previsto</TableHead>
+                    <TableHead className="text-right">Disponível</TableHead>
                     <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {creditCards.map((card) => (
-                    <TableRow key={card.id}>
-                      <TableCell className="font-medium flex items-center gap-2">
-                        <BankLogo logoKey={card.logoKey} photoUrl={card.photoUrl} />
-                        {card.bankName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="flex items-center gap-1 w-fit">
-                           <CreditCardIconLucide className="h-3 w-3" /> 
-                          {card.cardFlag}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">{card.dueDateDay}</TableCell>
-                      <TableCell className="text-right">
-                        {card.creditLimit !== undefined ? card.creditLimit.toFixed(2) : '-'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(card)} className="mr-2">
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Excluir</span>
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja excluir este cartão? Esta ação não pode ser desfeita.
-                                Excluir um cartão não afetará transações ou previsões já associadas a ele (elas perderão a referência ao cartão).
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteCreditCard(card.id)} className="bg-destructive hover:bg-destructive/90">
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {creditCards.map((card) => {
+                    const forecastedAmount = cardForecasts[card.id] || 0;
+                    const availableLimit = card.creditLimit !== undefined ? card.creditLimit - forecastedAmount : undefined;
+                    const usagePercentage = card.creditLimit !== undefined && card.creditLimit > 0 
+                      ? (forecastedAmount / card.creditLimit) * 100 
+                      : 0;
+
+                    return (
+                      <TableRow key={card.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <BankLogo logoKey={card.logoKey} photoUrl={card.photoUrl} />
+                            {card.bankName}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+                            <CreditCardIconLucide className="h-3 w-3" /> 
+                            {card.cardFlag}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">{card.dueDateDay}</TableCell>
+                        <TableCell className="text-right">
+                          {card.creditLimit !== undefined ? `R$ ${card.creditLimit.toFixed(2)}` : '-'}
+                        </TableCell>
+                        <TableCell className="text-right text-destructive font-medium">
+                          {forecastedAmount > 0 ? `R$ ${forecastedAmount.toFixed(2)}` : '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {availableLimit !== undefined ? (
+                            <div className="space-y-1">
+                              <div className={`font-medium ${availableLimit < 0 ? 'text-destructive' : 'text-accent-foreground'}`}>
+                                R$ {availableLimit.toFixed(2)}
+                              </div>
+                              {card.creditLimit !== undefined && card.creditLimit > 0 && (
+                                <Progress 
+                                  value={Math.min(usagePercentage, 100)} 
+                                  className="h-1.5"
+                                  indicatorClassName={usagePercentage > 90 ? 'bg-destructive' : usagePercentage > 70 ? 'bg-yellow-500' : 'bg-accent'}
+                                />
+                              )}
+                            </div>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenFormForEdit(card)} className="mr-2">
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Excluir</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir este cartão? Esta ação não pode ser desfeita.
+                                  Excluir um cartão não afetará transações ou previsões já associadas a ele (elas perderão a referência ao cartão).
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteCreditCard(card.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
