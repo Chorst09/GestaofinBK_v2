@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Calculator, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Vehicle } from '@/lib/types';
+import { calculateTollsFromRoute } from '@/lib/toll-service';
 
 const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"];
 
@@ -177,8 +178,8 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
           const litersNeeded = distanceKm / consumption;
           const fuelCost = litersNeeded * price;
 
-          // Estimar pedágios
-          const tollData = estimateTollCost(distanceKm / tripMultiplier, origin, destination);
+          // Calcular pedágios baseado na rota real traçada
+          const tollData = calculateTollsFromRoute(route, 'car');
           const tollCost = tollData.total * tripMultiplier;
 
           const simulationResult = {
@@ -193,14 +194,18 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
             totalCost: (fuelCost + tollCost).toFixed(2),
             route: result,
             isRoundTrip,
-            tollPlazas: tollData.plazas,
+            tollPlazas: tollData.plazas.map(p => ({
+              ...p,
+              concessionaire: p.concessionaire
+            })),
           };
 
           onSimulate(simulationResult);
           
+          const tollCount = tollData.plazas.length;
           toast({
             title: "Rota calculada!",
-            description: `${distanceKm.toFixed(0)} km${isRoundTrip ? ' (ida e volta)' : ''} • R$ ${(fuelCost + tollCost).toFixed(2)}`,
+            description: `${distanceKm.toFixed(0)} km${isRoundTrip ? ' (ida e volta)' : ''} • ${tollCount} pedágio${tollCount !== 1 ? 's' : ''} • R$ ${(fuelCost + tollCost).toFixed(2)}`,
           });
         } else {
           toast({
@@ -211,63 +216,6 @@ export function TripSimulatorForm({ vehicles, onSimulate }: TripSimulatorFormPro
         }
       }
     );
-  };
-
-  const estimateTollCost = (distanceKm: number, origin: string, destination: string) => {
-    // Base de dados simplificada de pedágios em rodovias principais
-    const tollPlazas: Array<{ name: string; value: number; route: string }> = [];
-    
-    // Detectar rota aproximada baseada em origem/destino
-    const originLower = origin.toLowerCase();
-    const destLower = destination.toLowerCase();
-    
-    // SP - RJ (Via Dutra)
-    if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
-        (destLower.includes('rio de janeiro') || destLower.includes('rj'))) {
-      tollPlazas.push(
-        { name: 'Pedágio Jacareí', value: 8.70, route: 'Via Dutra' },
-        { name: 'Pedágio Moreira César', value: 8.70, route: 'Via Dutra' },
-        { name: 'Pedágio Guararema', value: 8.70, route: 'Via Dutra' },
-        { name: 'Pedágio Santa Isabel', value: 8.70, route: 'Via Dutra' },
-        { name: 'Pedágio Arujá', value: 8.70, route: 'Via Dutra' }
-      );
-    }
-    // SP - Campinas
-    else if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
-             (destLower.includes('campinas'))) {
-      tollPlazas.push(
-        { name: 'Pedágio Jundiaí', value: 7.50, route: 'Anhanguera' },
-        { name: 'Pedágio Campo Limpo', value: 7.50, route: 'Anhanguera' }
-      );
-    }
-    // SP - Santos
-    else if ((originLower.includes('são paulo') || originLower.includes('sp')) && 
-             (destLower.includes('santos') || destLower.includes('guarujá'))) {
-      tollPlazas.push(
-        { name: 'Pedágio Riacho Grande', value: 6.80, route: 'Anchieta/Imigrantes' },
-        { name: 'Pedágio Piassaguera', value: 6.80, route: 'Anchieta/Imigrantes' }
-      );
-    }
-    // Estimativa genérica para outras rotas
-    else if (distanceKm > 50) {
-      const numTolls = Math.floor(distanceKm / 80); // Aproximadamente 1 pedágio a cada 80km
-      const avgTollValue = 8.50;
-      
-      for (let i = 1; i <= numTolls; i++) {
-        tollPlazas.push({
-          name: `Pedágio ${i}`,
-          value: avgTollValue,
-          route: 'Estimativa'
-        });
-      }
-    }
-    
-    const totalToll = tollPlazas.reduce((sum, toll) => sum + toll.value, 0);
-    
-    return {
-      total: totalToll,
-      plazas: tollPlazas
-    };
   };
 
   const formatDuration = (seconds: number): string => {

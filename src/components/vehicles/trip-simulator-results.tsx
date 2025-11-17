@@ -25,6 +25,8 @@ interface TripSimulatorResultsProps {
     fuelCost: string;
     tollCost: string;
     totalCost: string;
+    isRoundTrip?: boolean;
+    tollPlazas?: Array<{ name: string; value: number; route: string; concessionaire: string }>;
   };
 }
 
@@ -68,6 +70,12 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
               <p className="text-sm font-medium">{result.destination}</p>
             </div>
           </div>
+          {result.isRoundTrip && (
+            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded">
+              <Badge variant="secondary">Ida e Volta</Badge>
+              <span className="text-xs text-muted-foreground">Valores calculados para viagem completa</span>
+            </div>
+          )}
         </div>
 
         <Separator />
@@ -114,17 +122,44 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
               </p>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Receipt className="h-4 w-4 text-orange-600" />
-                <div>
-                  <p className="text-sm font-medium">Pedágios</p>
-                  <p className="text-xs text-muted-foreground">Estimativa</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Receipt className="h-4 w-4 text-orange-600" />
+                  <div>
+                    <p className="text-sm font-medium">Pedágios</p>
+                    <p className="text-xs text-muted-foreground">
+                      {result.tollPlazas && result.tollPlazas.length > 0 
+                        ? `${result.tollPlazas.length} praça${result.tollPlazas.length !== 1 ? 's' : ''}${result.isRoundTrip ? ' (ida e volta)' : ''}`
+                        : 'Nenhum pedágio detectado'
+                      }
+                    </p>
+                  </div>
                 </div>
+                <p className="text-lg font-bold text-orange-600">
+                  R$ {result.tollCost}
+                </p>
               </div>
-              <p className="text-lg font-bold text-orange-600">
-                R$ {result.tollCost}
-              </p>
+              
+              {result.tollPlazas && result.tollPlazas.length > 0 && (
+                <div className="space-y-1 pl-4 max-h-48 overflow-y-auto">
+                  {result.tollPlazas.map((toll, index) => (
+                    <div key={index} className="flex justify-between items-start text-xs py-1 border-b border-muted last:border-0">
+                      <div className="flex-1">
+                        <span className="font-medium">{toll.name}</span>
+                        <div className="text-muted-foreground">
+                          <span>{toll.route}</span>
+                          <span className="mx-1">•</span>
+                          <span className="text-blue-600 dark:text-blue-400">{toll.concessionaire}</span>
+                        </div>
+                      </div>
+                      <span className="font-medium ml-2">
+                        R$ {toll.value.toFixed(2)}{result.isRoundTrip && ' x2'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -143,8 +178,10 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
 
         <div className="p-3 bg-muted rounded-lg">
           <p className="text-xs text-muted-foreground">
-            ℹ️ Os valores de pedágio são estimativas baseadas em médias de rodovias brasileiras. 
-            Consulte as concessionárias para valores exatos.
+            ℹ️ {result.tollPlazas && result.tollPlazas.length > 0 
+              ? 'Pedágios detectados automaticamente na rota. Valores podem variar conforme categoria do veículo.'
+              : 'Nenhum pedágio detectado nesta rota. Valores podem variar conforme a rota escolhida.'
+            }
           </p>
         </div>
       </CardContent>
