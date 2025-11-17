@@ -145,6 +145,57 @@ type TravelCategory =
 - **Backup**: Viagens são incluídas no backup automático do Google Drive
 - **Dashboard**: Pode ser expandido para incluir métricas de viagens
 
+## Sistema de Rotas com Google Maps
+
+### Configuração
+
+1. Obtenha uma chave de API do Google Maps:
+   - Acesse [Google Cloud Console](https://console.cloud.google.com/google/maps-apis)
+   - Crie um novo projeto ou selecione um existente
+   - Habilite as seguintes APIs:
+     - Maps JavaScript API
+     - Places API
+     - Directions API
+   - Crie uma chave de API
+
+2. Configure a chave no arquivo `.env.local`:
+```env
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=sua_chave_aqui
+```
+
+### Funcionalidades de Rotas
+
+#### Criar Rota
+1. Acesse uma viagem e clique em **Rotas**
+2. Na aba **Nova Rota**, dê um nome para a rota
+3. Use a busca para adicionar locais:
+   - Digite o nome do local ou endereço
+   - Clique em **Adicionar**
+   - O local aparecerá no mapa e na lista
+4. Organize os pontos:
+   - Use as setas ↑↓ para reordenar
+   - Clique no ícone de edição para adicionar:
+     - Notas sobre o local
+     - Horário de chegada
+     - Horário de saída
+5. Clique em **Salvar Rota**
+
+#### Visualizar Rotas Salvas
+- Na aba **Rotas Salvas**, veja todas as rotas criadas
+- Cada rota mostra:
+  - Nome e data de criação
+  - Lista de pontos com endereços
+  - Horários (se configurados)
+  - Notas adicionais
+- Clique em **Visualizar** para ver a rota no mapa
+
+#### Recursos do Mapa
+- **Busca de Locais**: Integração com Google Places
+- **Rota Automática**: Traça automaticamente o caminho entre os pontos
+- **Marcadores Numerados**: Mostra a ordem dos pontos
+- **Reordenação**: Arraste pontos para reorganizar
+- **Edição de Pontos**: Adicione informações detalhadas
+
 ## Próximas Melhorias Sugeridas
 
 1. Gráficos de pizza para visualização de gastos por categoria
@@ -155,6 +206,9 @@ type TravelCategory =
 6. Integração com calendário para lembretes
 7. Conversão de moedas para viagens internacionais
 8. Compartilhamento de viagem com outros usuários
+9. Exportar rota para Google Maps mobile
+10. Estimativa de tempo e distância entre pontos
+11. Sugestões de pontos de interesse próximos
 
 ## Notas Técnicas
 

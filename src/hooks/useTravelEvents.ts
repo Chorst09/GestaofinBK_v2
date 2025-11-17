@@ -5,6 +5,7 @@ import type { TravelEvent, TravelEventFormData } from '@/lib/types';
 import useLocalStorage from './use-local-storage';
 import { v4 as uuidv4 } from 'uuid';
 import { parseISO, isWithinInterval, isBefore, isAfter } from 'date-fns';
+import type { TravelRoute } from '@/lib/types';
 
 const TRAVEL_EVENTS_STORAGE_KEY = 'financasZenTravelEvents';
 
@@ -16,6 +17,9 @@ type UseTravelEventsReturn = {
   getTravelEventById: (eventId: string) => TravelEvent | undefined;
   getActiveTravelEvents: () => TravelEvent[];
   updateTravelStatus: (eventId: string, status: TravelEvent['status']) => void;
+  addRouteToTravel: (travelId: string, route: Omit<TravelRoute, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  deleteRouteFromTravel: (travelId: string, routeId: string) => void;
+  getRoutesForTravel: (travelId: string) => TravelRoute[];
 };
 
 type UseTravelEventsBackupReturn = {
@@ -117,6 +121,55 @@ export function useTravelEvents(isBackupInstance = false): UseTravelEventsReturn
     [setStoredTravelEvents]
   );
 
+  const addRouteToTravel = useCallback(
+    (travelId: string, routeData: Omit<TravelRoute, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const newRoute: TravelRoute = {
+        ...routeData,
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      setStoredTravelEvents(prev =>
+        prev.map(event => {
+          if (event.id === travelId) {
+            return {
+              ...event,
+              routes: [...(event.routes || []), newRoute],
+            };
+          }
+          return event;
+        })
+      );
+    },
+    [setStoredTravelEvents]
+  );
+
+  const deleteRouteFromTravel = useCallback(
+    (travelId: string, routeId: string) => {
+      setStoredTravelEvents(prev =>
+        prev.map(event => {
+          if (event.id === travelId) {
+            return {
+              ...event,
+              routes: (event.routes || []).filter(route => route.id !== routeId),
+            };
+          }
+          return event;
+        })
+      );
+    },
+    [setStoredTravelEvents]
+  );
+
+  const getRoutesForTravel = useCallback(
+    (travelId: string) => {
+      const travel = internalTravelEvents.find(event => event.id === travelId);
+      return travel?.routes || [];
+    },
+    [internalTravelEvents]
+  );
+
   if (isBackupInstance) {
     return {
       travelEvents: storedTravelEvents,
@@ -133,5 +186,8 @@ export function useTravelEvents(isBackupInstance = false): UseTravelEventsReturn
     getTravelEventById,
     getActiveTravelEvents,
     updateTravelStatus,
+    addRouteToTravel,
+    deleteRouteFromTravel,
+    getRoutesForTravel,
   };
 }

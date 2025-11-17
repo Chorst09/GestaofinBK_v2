@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Home, LayoutDashboard, List, Upload, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, Tags, LineChart, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Navigation items - Updated with Travel module
 const navItems = [
   { href: '/', label: 'Página Principal', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },

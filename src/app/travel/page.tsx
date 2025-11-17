@@ -36,8 +36,10 @@ import {
   DollarSign,
   Plane,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Navigation
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -54,6 +56,7 @@ const travelCategoryLabels: Record<string, string> = {
 };
 
 export default function TravelPage() {
+  const router = useRouter();
   const {
     travelEvents,
     addTravelEvent,
@@ -207,6 +210,14 @@ export default function TravelPage() {
                       )}
                     </div>
                     <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => router.push(`/travel/${travel.id}/routes`)}
+                      >
+                        <Navigation className="h-4 w-4 mr-2" />
+                        Rotas
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleOpenFormForEdit(travel)}>
                         <Edit className="h-4 w-4" />
                       </Button>

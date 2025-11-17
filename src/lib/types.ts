@@ -179,6 +179,27 @@ export interface TravelBudgetItem {
   budgetedAmount: number;
 }
 
+export interface TravelRoutePoint {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  order: number;
+  notes?: string;
+  arrivalTime?: string; // ISO string
+  departureTime?: string; // ISO string
+}
+
+export interface TravelRoute {
+  id: string;
+  travelId: string;
+  name: string;
+  points: TravelRoutePoint[];
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
+}
+
 export interface TravelEvent {
   id: string;
   name: string;
@@ -189,8 +210,10 @@ export interface TravelEvent {
   budgetByCategory: TravelBudgetItem[];
   description?: string;
   status: 'planned' | 'ongoing' | 'completed';
+  routes?: TravelRoute[];
 }
 export type TravelEventFormData = Omit<TravelEvent, 'id'>;
+export type TravelRouteFormData = Omit<TravelRoute, 'id' | 'createdAt' | 'updatedAt'>;
 
 
 // ---- Backup & Google Drive Types ----
