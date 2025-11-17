@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTravelEvents } from '@/hooks/useTravelEvents';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus } from 'lucide-react';
-import { TravelRouteMap } from '@/components/travel/travel-route-map';
+import { TravelRouteMapV2 } from '@/components/travel/travel-route-map-v2';
 import { SavedRoutesList } from '@/components/travel/saved-routes-list';
 import type { TravelRoutePoint, TravelRoute } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -101,7 +101,7 @@ export default function TravelRoutesPage() {
         </TabsList>
 
         <TabsContent value="new" className="mt-6">
-          <TravelRouteMap
+          <TravelRouteMapV2
             travelId={travelId}
             onSaveRoute={handleSaveRoute}
           />
@@ -117,7 +117,7 @@ export default function TravelRoutesPage() {
 
         <TabsContent value="view" className="mt-6">
           {viewingRoute && (
-            <TravelRouteMap
+            <TravelRouteMapV2
               travelId={travelId}
               onSaveRoute={() => {}}
               initialPoints={viewingRoute.points}
