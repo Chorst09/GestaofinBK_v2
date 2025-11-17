@@ -63,9 +63,11 @@ export function TravelRouteMap({
 
   // Inicializar Google Maps
   React.useEffect(() => {
-    if (!mapRef.current || map || isLoaded) return;
+    if (map || isLoaded) return;
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    
+    console.log('API Key presente:', !!apiKey);
     
     if (!apiKey) {
       setLoadError('Chave da API do Google Maps não configurada. Configure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY no arquivo .env.local');
@@ -74,11 +76,16 @@ export function TravelRouteMap({
 
     const initMap = () => {
       try {
-        if (typeof window === 'undefined' || !window.google) {
+        console.log('Tentando inicializar mapa...');
+        console.log('window.google disponível:', !!window.google);
+        
+        if (typeof window === 'undefined' || !window.google || !mapRef.current) {
+          console.log('Google Maps ainda não carregado ou ref não disponível');
           return;
         }
 
-        const newMap = new window.google.maps.Map(mapRef.current!, {
+        console.log('Criando mapa...');
+        const newMap = new window.google.maps.Map(mapRef.current, {
           center: { lat: -14.235, lng: -51.925 }, // Centro do Brasil
           zoom: 4,
           mapTypeControl: true,
@@ -90,23 +97,31 @@ export function TravelRouteMap({
           suppressMarkers: false,
         });
 
+        console.log('Mapa criado com sucesso!');
         setMap(newMap);
         setDirectionsRenderer(renderer);
         setIsLoaded(true);
       } catch (error) {
         console.error('Erro ao inicializar mapa:', error);
-        setLoadError('Erro ao carregar o mapa. Verifique sua conexão e a chave da API.');
+        setLoadError(`Erro ao carregar o mapa: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       }
     };
 
     if (typeof window !== 'undefined' && window.google && window.google.maps) {
+      console.log('Google Maps já carregado, inicializando...');
       initMap();
     } else {
+      console.log('Carregando script do Google Maps...');
       // Verificar se o script já está sendo carregado
       const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
       
       if (existingScript) {
-        existingScript.addEventListener('load', initMap);
+        console.log('Script já existe, aguardando carregamento...');
+        const handleLoad = () => {
+          initMap();
+          existingScript.removeEventListener('load', handleLoad);
+        };
+        existingScript.addEventListener('load', handleLoad);
         return;
       }
 
@@ -114,20 +129,22 @@ export function TravelRouteMap({
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
-      script.onload = initMap;
-      script.onerror = () => {
-        setLoadError('Falha ao carregar o Google Maps. Verifique sua chave de API.');
+      script.onload = () => {
+        console.log('Script do Google Maps carregado!');
+        initMap();
+      };
+      script.onerror = (error) => {
+        console.error('Erro ao carregar script:', error);
+        setLoadError('Falha ao carregar o Google Maps. Verifique sua chave de API e se as APIs estão habilitadas.');
       };
       document.head.appendChild(script);
+      console.log('Script adicionado ao DOM');
     }
-  }, [map, isLoaded]);
+  }, []); // Array vazio - executa apenas uma vez
 
   // Atualizar rota no mapa quando os pontos mudarem
   React.useEffect(() => {
     if (!map || !directionsRenderer || points.length < 2 || !window.google) {
-      // Limpar marcadores se houver menos de 2 pontos
-      markers.forEach(marker => marker.setMap(null));
-      setMarkers([]);
       return;
     }
 
@@ -155,7 +172,7 @@ export function TravelRouteMap({
         }
       }
     );
-  }, [points, map, directionsRenderer, markers]);
+  }, [points, map, directionsRenderer]);
 
   const searchPlace = async () => {
     if (!map || !searchQuery.trim() || !window.google) {
