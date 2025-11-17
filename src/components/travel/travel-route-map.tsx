@@ -63,7 +63,7 @@ export function TravelRouteMap({
 
   // Inicializar Google Maps
   React.useEffect(() => {
-    if (map || isLoaded) return;
+    if (map || isLoaded || !mapRef.current) return;
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
@@ -71,6 +71,8 @@ export function TravelRouteMap({
       setLoadError('Chave da API do Google Maps não configurada. Configure NEXT_PUBLIC_GOOGLE_MAPS_API_KEY no arquivo .env.local');
       return;
     }
+
+    let mounted = true;
 
     const initMap = async () => {
       try {
@@ -80,8 +82,8 @@ export function TravelRouteMap({
         // Carregar Google Maps
         await loadGoogleMaps(apiKey);
         
-        if (!mapRef.current) {
-          setLoadError('Referência do mapa não disponível');
+        // Verificar se o componente ainda está montado
+        if (!mounted || !mapRef.current) {
           return;
         }
 
@@ -98,16 +100,30 @@ export function TravelRouteMap({
           suppressMarkers: false,
         });
 
-        setMap(newMap);
-        setDirectionsRenderer(renderer);
-        setIsLoaded(true);
+        if (mounted) {
+          setMap(newMap);
+          setDirectionsRenderer(renderer);
+          setIsLoaded(true);
+        }
       } catch (error) {
         console.error('Erro ao carregar Google Maps:', error);
-        setLoadError(`Erro ao carregar o mapa: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        if (mounted) {
+          setLoadError(`Erro ao carregar o mapa: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
       }
     };
 
-    initMap();
+    // Pequeno delay para garantir que a ref está pronta
+    const timer = setTimeout(() => {
+      if (mapRef.current) {
+        initMap();
+      }
+    }, 100);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
   }, []); // Array vazio - executa apenas uma vez
 
   // Atualizar rota no mapa quando os pontos mudarem
