@@ -193,7 +193,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
       bankAccountId: values.bankAccountId && values.bankAccountId !== NO_BANK_ACCOUNT_SELECTED_VALUE && !isCreditCardExpenseItem
                       ? values.bankAccountId
                       : undefined,
-      travelId: values.travelId || undefined,
+      travelId: values.travelId && values.travelId !== "none" ? values.travelId : undefined,
     };
 
     try {
@@ -504,7 +504,7 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {travelEvents.map((travel) => (
                     <SelectItem key={travel.id} value={travel.id}>
                       {travel.name} - {travel.destination}
