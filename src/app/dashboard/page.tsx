@@ -228,7 +228,7 @@ export default function DashboardPage() {
                             )}
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuContent className="w-56 max-h-[400px] overflow-y-auto" align="end">
                         <DropdownMenuLabel>Filtrar por Categoria</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {allCategories.filter(c => c.type !== 'general').map(category => (
