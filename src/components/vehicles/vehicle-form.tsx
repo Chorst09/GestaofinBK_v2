@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Vehicle, VehicleFormData } from '@/lib/types';
 import { BankLogo, vehicleLogoOptions } from '../layout/BankLogo';
-import { generateVehicleImage } from '@/ai/flows/generate-vehicle-image-flow';
+
 import { Separator } from '../ui/separator';
 
 const vehicleFormSchema = z.object({
@@ -90,22 +90,12 @@ export function VehicleForm({
       return;
     }
 
-    setIsFetchingImage(true);
-    try {
-      const result = await generateVehicleImage({ brand, model, color: color || undefined });
-      if (result.imageDataUri) {
-        setValue('photoUrl', result.imageDataUri, { shouldValidate: true });
-        setValue('logoKey', 'none', { shouldValidate: true });
-        toast({ title: "Imagem gerada!", description: "Uma imagem para o seu veículo foi criada." });
-      } else {
-        throw new Error("A IA não retornou uma imagem.");
-      }
-    } catch (error: any) {
-      console.error("Failed to fetch vehicle image", error);
-      toast({ variant: "destructive", title: "Erro ao buscar imagem", description: error.message || "Não foi possível gerar a imagem do veículo." });
-    } finally {
-      setIsFetchingImage(false);
-    }
+    // Funcionalidade de geração de imagem AI temporariamente desabilitada
+    toast({ 
+      variant: "destructive", 
+      title: "Funcionalidade indisponível", 
+      description: "A geração de imagens por IA está temporariamente desabilitada." 
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
