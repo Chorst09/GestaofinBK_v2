@@ -11,7 +11,7 @@ const TRAVEL_EVENTS_STORAGE_KEY = 'financasZenTravelEvents';
 
 type UseTravelEventsReturn = {
   travelEvents: TravelEvent[];
-  addTravelEvent: (data: TravelEventFormData) => void;
+  addTravelEvent: (data: TravelEventFormData) => TravelEvent;
   updateTravelEvent: (data: TravelEvent) => void;
   deleteTravelEvent: (eventId: string) => void;
   getTravelEventById: (eventId: string) => TravelEvent | undefined;
@@ -71,6 +71,7 @@ export function useTravelEvents(isBackupInstance = false): UseTravelEventsReturn
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         )
       );
+      return newEvent;
     },
     [setStoredTravelEvents]
   );

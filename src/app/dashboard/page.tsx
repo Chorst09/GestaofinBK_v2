@@ -478,6 +478,16 @@ export default function DashboardPage() {
                           <Badge variant="outline" className="text-xs badge-modern">
                             {transaction.category}
                           </Badge>
+                          <Badge 
+                            variant={transaction.status === 'paid' ? 'default' : 'secondary'}
+                            className={`text-xs flex items-center gap-1 ${
+                              transaction.status === 'paid' 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-orange-100 text-orange-800 border-orange-200'
+                            }`}
+                          >
+                            {transaction.status === 'paid' ? 'Pago' : 'Pendente'}
+                          </Badge>
                           {accountOrCardElement}
                         </div>
                       </div>
