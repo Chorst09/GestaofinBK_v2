@@ -77,6 +77,15 @@ export default function TransactionsPage() {
       baseFiltered = transactions.filter(t => t.travelId === travelId);
     } else {
       // Filtrar por período apenas se não estiver filtrando por viagem
+      const period = {
+        start: startOfMonth(currentMonth),
+        end: endOfMonth(currentMonth),
+      };
+      baseFiltered = transactions.filter(t => {
+        try {
+          return isWithinInterval(parseISO(t.date), period);
+        } catch {
+          return false;
         }
       });
     }
