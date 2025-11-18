@@ -53,10 +53,14 @@ export function UpcomingCreditCardBills({ currentMonth = new Date() }: UpcomingC
           dueDate.setDate(dueDate.getDate() + 1);
         }
 
-        // Current actual expenses for this card and month
+        // Current actual expenses for this card and month (only pending transactions)
         const currentAmount = transactions
           .filter(transaction => {
             if (transaction.creditCardId !== card.id || transaction.type !== 'expense') {
+              return false;
+            }
+            // Only include pending transactions in the bill calculation
+            if (transaction.status === 'paid') {
               return false;
             }
             try {
@@ -79,12 +83,16 @@ export function UpcomingCreditCardBills({ currentMonth = new Date() }: UpcomingC
 
         const totalAmount = currentAmount + forecastedAmount;
 
-        // Only include bills with some amount
+        // Only include bills with some pending amount
         if (totalAmount > 0) {
           const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
           let status: 'current' | 'upcoming' | 'overdue' = 'upcoming';
-          if (isBefore(dueDate, today)) {
+          
+          // If there's no pending amount, consider the bill as paid (don't show as overdue)
+          if (totalAmount === 0) {
+            status = 'upcoming'; // Don't show paid bills as overdue
+          } else if (isBefore(dueDate, today)) {
             status = 'overdue';
           } else if (daysUntilDue <= 7) {
             status = 'current';
