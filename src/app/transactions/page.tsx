@@ -47,8 +47,9 @@ import { BankLogo } from '@/components/layout/BankLogo';
 import { Separator } from '@/components/ui/separator';
 import { useSearchParams } from 'next/navigation';
 import { useTravelEvents } from '@/hooks/useTravelEvents';
+import { Suspense } from 'react';
 
-export default function TransactionsPage() {
+function TransactionsContent() {
   const searchParams = useSearchParams();
   const travelId = searchParams.get('travelId');
   
@@ -383,5 +384,13 @@ export default function TransactionsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-8">Carregando...</div>}>
+      <TransactionsContent />
+    </Suspense>
   );
 }
