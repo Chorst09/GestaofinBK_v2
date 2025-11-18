@@ -99,20 +99,42 @@ const features = [
 ];
 
 
+const heroImages = [
+  'https://t4isolutions.com/wp-content/uploads/2021/05/AdobeStock_600314909-2048x1365.jpeg',
+  'https://www.advtecnologia.com.br/wp-content/uploads/2023/11/sistema-de-gestao-financeira-1-1080x675.jpg',
+  'https://noticias.iob.com.br/wp-content/uploads/2023/12/Sistema-de-Gestao-Financeira-1536x1024.jpg',
+  'https://f360.com.br/wp-content/uploads/2017/08/sistema-de-gestao-financeira.jpg.webp'
+];
+
 export default function MainPage() {
   const { isLoggedIn, userProfile, login, logout, isInitializing } = useDataBackup();
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+
+  // Auto-rotate images every 5 seconds
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
       <section className="relative w-full rounded-lg overflow-hidden shadow-lg group">
-        <img
-          src="https://media.istockphoto.com/id/1454189417/pt/foto/financial-crisis-business-market-graph-with-growth-money-price-arrow-inflation-gold-coin.jpg?s=1024x1024&w=is&k=20&c=26Jw5c8R9vRNxbZW-IvPvG_70o0MMzqKlWUhqbDqKr4="
-          alt="Painel de gestão financeira"
-          data-ai-hint="finance management"
-          width={1200}
-          height={400}
-          className="w-full h-auto object-cover"
-        />
+        {heroImages.map((image, index) => (
+          <img
+            key={image}
+            src={image}
+            alt={`Painel de gestão financeira ${index + 1}`}
+            data-ai-hint="finance management"
+            width={1200}
+            height={400}
+            className={`w-full h-auto object-cover transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0 absolute inset-0'
+            }`}
+          />
+        ))}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 bg-black/40">
           <h1 className="text-4xl font-headline font-bold">Bem-vindo ao Finanças Zen</h1>
 
@@ -140,6 +162,22 @@ export default function MainPage() {
           </div>
 
           <p className="mt-2 text-lg text-primary-foreground/90">Sua plataforma completa para controle financeiro pessoal.</p>
+          
+          {/* Carousel indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+            {heroImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentImageIndex 
+                    ? 'bg-white w-8' 
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+                aria-label={`Ir para imagem ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
