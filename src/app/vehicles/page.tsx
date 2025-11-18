@@ -243,7 +243,7 @@ export default function VehiclesPage() {
         </Card>
       ) : (
         <div>
-            <Card className="mb-6 bg-gradient-to-r from-slate-800 to-slate-900 text-white border-0 shadow-xl">
+            <Card className="mb-6 bg-gradient-to-r from-slate-700 to-slate-800 text-white border-0 shadow-xl">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-6">
