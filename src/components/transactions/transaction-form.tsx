@@ -41,6 +41,7 @@ import { useAllCategories } from '@/hooks/useAllCategories';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useBankAccounts } from '@/hooks/useBankAccounts';
 import { useTravelEvents } from '@/hooks/useTravelEvents';
+import { PlusCircle } from 'lucide-react';
 
 const NO_CARD_SELECTED_VALUE = "NO_CARD_SELECTED";
 const NO_BANK_ACCOUNT_SELECTED_VALUE = "NO_BANK_ACCOUNT_SELECTED";
@@ -71,7 +72,11 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
   const { creditCards, getCreditCardById } = useCreditCards();
   const { bankAccounts } = useBankAccounts();
   const { getCategoriesByType, getCategoryByName } = useAllCategories();
-  const { travelEvents } = useTravelEvents();
+  const { travelEvents, addTravelEvent } = useTravelEvents();
+  
+  const [showNewTravelForm, setShowNewTravelForm] = React.useState(false);
+  const [newTravelName, setNewTravelName] = React.useState('');
+  const [newTravelDestination, setNewTravelDestination] = React.useState('');
   
   const transactionValidationSchema = formSchema.refine(data => {
     // Não pode ter um bankAccountId e um creditCardId ao mesmo tempo para despesas.
@@ -132,6 +137,36 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
     if (selectedCategoryName === 'Saldo em Conta') form.setValue('type', 'income');
   }, [selectedCategoryName, form]);
 
+
+  const handleCreateNewTravel = () => {
+    if (!newTravelName.trim() || !newTravelDestination.trim()) return;
+    
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    
+    const newTravel = {
+      name: newTravelName.trim(),
+      destination: newTravelDestination.trim(),
+      startDate: today.toISOString().split('T')[0],
+      endDate: nextMonth.toISOString().split('T')[0],
+      totalBudget: 1000, // Valor padrão
+      budgetByCategory: [],
+      status: 'planned' as const,
+      description: `Criado automaticamente ao vincular transação`
+    };
+    
+    const createdTravel = addTravelEvent(newTravel);
+    form.setValue('travelId', createdTravel.id);
+    
+    setShowNewTravelForm(false);
+    setNewTravelName('');
+    setNewTravelDestination('');
+    
+    toast({
+      title: "Viagem criada",
+      description: `A viagem "${newTravelName}" foi criada e vinculada à transação.`
+    });
+  };
 
   React.useEffect(() => {
     form.setValue('category', ''); 
@@ -494,24 +529,82 @@ export function TransactionForm({ onSubmitSuccess, initialData, onAddTransaction
           render={({ field }) => (
             <FormItem>
               <FormLabel>Viagem Associada (Opcional)</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                value={field.value || ''}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Nenhuma viagem" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma</SelectItem>
-                  {travelEvents.map((travel) => (
-                    <SelectItem key={travel.id} value={travel.id}>
-                      {travel.name} - {travel.destination}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-3">
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || ''}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nenhuma viagem" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {travelEvents.map((travel) => (
+                      <SelectItem key={travel.id} value={travel.id}>
+                        {travel.name} - {travel.destination}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowNewTravelForm(true)}
+                    className="text-xs"
+                  >
+                    <PlusCircle className="h-3 w-3 mr-1" />
+                    Nova Viagem/Lazer
+                  </Button>
+                </div>
+                
+                {showNewTravelForm && (
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/50">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Nome da Viagem/Lazer</label>
+                      <Input
+                        placeholder="Ex: Férias em Florianópolis"
+                        value={newTravelName}
+                        onChange={(e) => setNewTravelName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Destino</label>
+                      <Input
+                        placeholder="Ex: Florianópolis, SC"
+                        value={newTravelDestination}
+                        onChange={(e) => setNewTravelDestination(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleCreateNewTravel}
+                        disabled={!newTravelName.trim() || !newTravelDestination.trim()}
+                      >
+                        Criar e Vincular
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowNewTravelForm(false);
+                          setNewTravelName('');
+                          setNewTravelDestination('');
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}

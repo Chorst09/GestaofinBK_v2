@@ -45,9 +45,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { BankLogo } from '@/components/layout/BankLogo';
 import { Separator } from '@/components/ui/separator';
+import { useSearchParams } from 'next/navigation';
+import { useTravelEvents } from '@/hooks/useTravelEvents';
 
 export default function TransactionsPage() {
+  const searchParams = useSearchParams();
+  const travelId = searchParams.get('travelId');
+  
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
+  const { getTravelEventById } = useTravelEvents();
   const { getCreditCardById } = useCreditCards();
   const { getBankAccountById } = useBankAccounts();
   const { getCategoryIcon } = useAllCategories();
@@ -63,20 +69,21 @@ export default function TransactionsPage() {
 
   const { filteredTransactions, monthlyIncome, monthlyExpenses, monthlyBalance } = React.useMemo(() => {
     if (!currentMonth) return { filteredTransactions: [], monthlyIncome: 0, monthlyExpenses: 0, monthlyBalance: 0 };
-    const period = {
-      start: startOfMonth(currentMonth),
-      end: endOfMonth(currentMonth),
-    };
-    const filtered = transactions.filter(t => {
-      try {
-        return isWithinInterval(parseISO(t.date), period);
-      } catch {
-        return false;
-      }
-    });
+    
+    let baseFiltered = transactions;
+    
+    // Filtrar por viagem se travelId estiver presente
+    if (travelId) {
+      baseFiltered = transactions.filter(t => t.travelId === travelId);
+    } else {
+      // Filtrar por período apenas se não estiver filtrando por viagem
+        }
+      });
+    }
+    
     let income = 0;
     let expenses = 0;
-    filtered.forEach(t => {
+    baseFiltered.forEach(t => {
       if (t.type === 'income') {
         income += t.amount;
       } else {
@@ -84,12 +91,12 @@ export default function TransactionsPage() {
       }
     });
     return {
-      filteredTransactions: filtered,
+      filteredTransactions: baseFiltered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       monthlyIncome: income,
       monthlyExpenses: expenses,
       monthlyBalance: income - expenses,
     };
-  }, [transactions, currentMonth]);
+  }, [transactions, currentMonth, travelId]);
 
   const changeMonth = (direction: 'prev' | 'next') => {
     setCurrentMonth(prev => prev ? (direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1)) : null);
@@ -124,10 +131,21 @@ export default function TransactionsPage() {
   };
 
 
+  const selectedTravel = travelId ? getTravelEventById(travelId) : null;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-headline font-semibold">Suas Transações</h1>
+        <div>
+          <h1 className="text-2xl font-headline font-semibold">
+            {selectedTravel ? `Transações - ${selectedTravel.name}` : 'Suas Transações'}
+          </h1>
+          {selectedTravel && (
+            <p className="text-muted-foreground mt-1">
+              {selectedTravel.destination} • {filteredTransactions.length} transação(ões)
+            </p>
+          )}
+        </div>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleOpenFormForAdd} className="w-full sm:w-auto">
@@ -153,22 +171,31 @@ export default function TransactionsPage() {
         </Dialog>
       </div>
       
-      <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => changeMonth('prev')}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h2 className="text-xl font-semibold text-center w-48 capitalize">
-          {currentMonth ? format(currentMonth, 'MMMM yyyy', { locale: ptBR }) : ''}
-        </h2>
-        <Button variant="outline" size="icon" onClick={() => changeMonth('next')}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+      {!travelId && (
+        <div className="flex items-center justify-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => changeMonth('prev')}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-xl font-semibold text-center w-48 capitalize">
+            {currentMonth ? format(currentMonth, 'MMMM yyyy', { locale: ptBR }) : ''}
+          </h2>
+          <Button variant="outline" size="icon" onClick={() => changeMonth('next')}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Histórico de Transações</CardTitle>
-          <CardDescription>Visualize e gerencie suas receitas e despesas do mês selecionado.</CardDescription>
+          <CardTitle className="font-headline">
+            {selectedTravel ? `Transações da Viagem` : 'Histórico de Transações'}
+          </CardTitle>
+          <CardDescription>
+            {selectedTravel 
+              ? `Visualize e gerencie as transações relacionadas à viagem "${selectedTravel.name}".`
+              : 'Visualize e gerencie suas receitas e despesas do mês selecionado.'
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredTransactions.length === 0 ? (
