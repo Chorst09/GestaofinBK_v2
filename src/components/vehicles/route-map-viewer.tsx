@@ -34,64 +34,107 @@ interface RouteMapViewerProps {
 export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
   const mapRef = React.useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!mapRef.current) return;
 
+    // Verificar se a API key está configurada
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      setError('Chave da API do Google Maps não configurada');
+      return;
+    }
+
     // Carregar Google Maps API
     const loadGoogleMaps = () => {
-      if (window.google && window.google.maps) {
-        initMap();
+      // Verificar se já está carregado
+      if (typeof window !== 'undefined' && window.google && window.google.maps) {
+        setTimeout(() => initMap(), 100);
+        return;
+      }
+
+      // Verificar se o script já está sendo carregado
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (existingScript) {
+        // Aguardar o carregamento
+        const checkGoogle = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(checkGoogle);
+            initMap();
+          }
+        }, 100);
+        
+        // Timeout após 10 segundos
+        setTimeout(() => {
+          clearInterval(checkGoogle);
+          if (!window.google || !window.google.maps) {
+            setError('Timeout ao carregar Google Maps');
+          }
+        }, 10000);
         return;
       }
 
       const script = document.createElement('script');
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
       script.async = true;
       script.defer = true;
-      script.onload = () => initMap();
+      script.onload = () => {
+        // Aguardar um pouco para garantir que tudo está carregado
+        setTimeout(() => initMap(), 100);
+      };
+      script.onerror = () => setError('Erro ao carregar Google Maps');
       document.head.appendChild(script);
     };
 
     const initMap = () => {
-      if (!mapRef.current || !window.google) return;
+      if (!mapRef.current) return;
+      
+      if (typeof window === 'undefined' || !window.google || !window.google.maps) {
+        setError('Google Maps não está disponível');
+        return;
+      }
 
-      const map = new google.maps.Map(mapRef.current, {
-        zoom: 7,
-        center: { lat: -25.4284, lng: -49.2733 }, // Curitiba como centro padrão
-        mapTypeControl: true,
-        streetViewControl: false,
-        fullscreenControl: true,
-      });
+      try {
+        const map = new google.maps.Map(mapRef.current, {
+          zoom: 7,
+          center: { lat: -25.4284, lng: -49.2733 }, // Curitiba como centro padrão
+          mapTypeControl: true,
+          streetViewControl: false,
+          fullscreenControl: true,
+        });
 
-      const directionsService = new google.maps.DirectionsService();
-      const directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: false,
-        polylineOptions: {
-          strokeColor: '#2563eb',
-          strokeWeight: 5,
-          strokeOpacity: 0.8,
-        },
-      });
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+          map: map,
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: '#2563eb',
+            strokeWeight: 5,
+            strokeOpacity: 0.8,
+          },
+        });
 
-      // Calcular e exibir rota
-      directionsService.route(
-        {
-          origin: route.origin,
-          destination: route.destination,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === 'OK' && result) {
-            directionsRenderer.setDirections(result);
-            setMapLoaded(true);
-          } else {
-            console.error('Erro ao carregar rota:', status);
+        // Calcular e exibir rota
+        directionsService.route(
+          {
+            origin: route.origin,
+            destination: route.destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status === 'OK' && result) {
+              directionsRenderer.setDirections(result);
+              setMapLoaded(true);
+            } else {
+              setError(`Erro ao calcular rota: ${status}`);
+            }
           }
-        }
-      );
+        );
+      } catch (err) {
+        setError('Erro ao inicializar o mapa');
+        console.error('Erro ao inicializar mapa:', err);
+      }
     };
 
     loadGoogleMaps();
@@ -121,7 +164,16 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
           ref={mapRef} 
           className="w-full h-[400px] rounded-lg border-2 border-muted bg-muted"
         >
-          {!mapLoaded && (
+          {error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center space-y-2 p-4">
+                <p className="text-sm text-destructive font-medium">{error}</p>
+                <p className="text-xs text-muted-foreground">
+                  Verifique se a chave da API do Google Maps está configurada corretamente
+                </p>
+              </div>
+            </div>
+          ) : !mapLoaded && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-2">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
