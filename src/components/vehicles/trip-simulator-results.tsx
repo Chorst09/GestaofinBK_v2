@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSimulatedRoutes } from '@/hooks/useSimulatedRoutes';
+import { RouteMapViewer } from './route-map-viewer';
 import { 
   Navigation, 
   Fuel, 
@@ -38,6 +39,7 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
   const { toast } = useToast();
   const { addRoute } = useSimulatedRoutes();
   const [isSaving, setIsSaving] = React.useState(false);
+  const [showMap, setShowMap] = React.useState(false);
 
   const handleSaveRoute = () => {
     setIsSaving(true);
@@ -241,18 +243,33 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
           <Button 
             variant="outline"
             className="flex-1"
-            onClick={() => {
-              // TODO: Implementar visualização de rota no mapa
-              toast({
-                title: "Em desenvolvimento",
-                description: "A visualização de rota no mapa será implementada em breve!",
-              });
-            }}
+            onClick={() => setShowMap(!showMap)}
           >
             <MapPin className="mr-2 h-4 w-4" />
-            Visualizar Rota
+            {showMap ? 'Ocultar Mapa' : 'Visualizar Rota'}
           </Button>
         </div>
+
+        {/* Visualizador de Mapa */}
+        {showMap && (
+          <div className="mt-4">
+            <RouteMapViewer
+              route={{
+                origin: result.origin,
+                destination: result.destination,
+                distance: result.distance,
+                duration: result.duration,
+                fuelCost: result.fuelCost,
+                tollCost: result.tollCost,
+                totalCost: result.totalCost,
+                isRoundTrip: result.isRoundTrip || false,
+                vehicleName: result.vehicle.name,
+                tollPlazas: result.tollPlazas,
+              }}
+              onClose={() => setShowMap(false)}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

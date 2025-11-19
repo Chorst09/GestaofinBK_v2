@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { RouteMapViewer } from './route-map-viewer';
 import { 
   Navigation, 
   Trash2, 
@@ -11,7 +12,8 @@ import {
   Clock, 
   DollarSign,
   Car,
-  ArrowRight
+  ArrowRight,
+  Eye
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -32,6 +34,7 @@ export function SavedRoutesList() {
   const { routes, deleteRoute } = useSimulatedRoutes();
   const { toast } = useToast();
   const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
+  const [viewingRoute, setViewingRoute] = React.useState<string | null>(null);
 
   const handleDelete = () => {
     if (!deleteTarget) return;
@@ -76,14 +79,23 @@ export function SavedRoutesList() {
                   )}
                 </CardDescription>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setDeleteTarget(route.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewingRoute(viewingRoute === route.id ? null : route.id)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setDeleteTarget(route.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -120,6 +132,27 @@ export function SavedRoutesList() {
             <div className="text-xs text-muted-foreground">
               Salva em {format(parseISO(route.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
             </div>
+
+            {/* Visualizador de Mapa */}
+            {viewingRoute === route.id && (
+              <div className="mt-4">
+                <RouteMapViewer
+                  route={{
+                    origin: route.origin,
+                    destination: route.destination,
+                    distance: route.distance,
+                    duration: route.duration,
+                    fuelCost: route.fuelCost,
+                    tollCost: route.tollCost,
+                    totalCost: route.totalCost,
+                    isRoundTrip: route.isRoundTrip,
+                    vehicleName: route.vehicleName,
+                    tollPlazas: route.tollPlazas,
+                  }}
+                  onClose={() => setViewingRoute(null)}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
