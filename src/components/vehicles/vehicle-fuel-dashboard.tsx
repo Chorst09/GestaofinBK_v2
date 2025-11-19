@@ -278,7 +278,7 @@ export function VehicleFuelDashboard({
 
       <div>
         <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-headline font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+            <h3 className="text-2xl font-headline font-bold text-white">
               Histórico de Despesas
             </h3>
             <Button 
