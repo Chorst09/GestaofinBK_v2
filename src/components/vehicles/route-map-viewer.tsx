@@ -91,6 +91,7 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
                 <GoogleMapWrapper
                   origin={route.origin}
                   destination={route.destination}
+                  tollPlazas={route.tollPlazas}
                   onLoad={handleMapLoad}
                   onError={handleMapError}
                 />
