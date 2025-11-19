@@ -33,11 +33,16 @@ interface RouteMapViewerProps {
 
 export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
   const mapRef = React.useRef<HTMLDivElement>(null);
+  const mapInstanceRef = React.useRef<google.maps.Map | null>(null);
+  const directionsRendererRef = React.useRef<google.maps.DirectionsRenderer | null>(null);
   const [mapLoaded, setMapLoaded] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = React.useState(false);
 
   React.useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || isInitializing) return;
+    
+    setIsInitializing(true);
 
     // Verificar se a API key está configurada
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -88,14 +93,23 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
     };
 
     const initMap = () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current) {
+        setIsInitializing(false);
+        return;
+      }
       
       if (typeof window === 'undefined' || !window.google || !window.google.maps) {
         setError('Google Maps não está disponível');
+        setIsInitializing(false);
         return;
       }
 
       try {
+        // Limpar mapa anterior se existir
+        if (directionsRendererRef.current) {
+          directionsRendererRef.current.setMap(null);
+        }
+
         const map = new google.maps.Map(mapRef.current, {
           zoom: 7,
           center: { lat: -25.4284, lng: -49.2733 }, // Curitiba como centro padrão
@@ -103,6 +117,8 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
           streetViewControl: false,
           fullscreenControl: true,
         });
+
+        mapInstanceRef.current = map;
 
         const directionsService = new google.maps.DirectionsService();
         const directionsRenderer = new google.maps.DirectionsRenderer({
@@ -115,6 +131,8 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
           },
         });
 
+        directionsRendererRef.current = directionsRenderer;
+
         // Calcular e exibir rota
         directionsService.route(
           {
@@ -124,20 +142,35 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
           },
           (result, status) => {
             if (status === 'OK' && result) {
-              directionsRenderer.setDirections(result);
-              setMapLoaded(true);
+              if (directionsRendererRef.current) {
+                directionsRendererRef.current.setDirections(result);
+                setMapLoaded(true);
+              }
             } else {
               setError(`Erro ao calcular rota: ${status}`);
             }
+            setIsInitializing(false);
           }
         );
       } catch (err) {
         setError('Erro ao inicializar o mapa');
         console.error('Erro ao inicializar mapa:', err);
+        setIsInitializing(false);
       }
     };
 
     loadGoogleMaps();
+
+    // Cleanup
+    return () => {
+      if (directionsRendererRef.current) {
+        directionsRendererRef.current.setMap(null);
+        directionsRendererRef.current = null;
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current = null;
+      }
+    };
   }, [route.origin, route.destination]);
 
   return (
@@ -163,6 +196,9 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
         <div 
           ref={mapRef} 
           className="w-full h-[400px] rounded-lg border-2 border-muted bg-muted"
+          data-1p-ignore
+          data-lpignore="true"
+          data-form-type="other"
         >
           {error ? (
             <div className="flex items-center justify-center h-full">
