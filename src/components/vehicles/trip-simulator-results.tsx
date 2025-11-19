@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { 
   Navigation, 
   Fuel, 
@@ -183,6 +184,33 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
               : 'Nenhum pedágio detectado nesta rota. Valores podem variar conforme a rota escolhida.'
             }
           </p>
+        </div>
+
+        <Separator />
+
+        {/* Botões de Ação */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button 
+            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            onClick={() => {
+              // TODO: Implementar salvamento de rota
+              alert('Funcionalidade de salvar rota será implementada em breve!');
+            }}
+          >
+            <Navigation className="mr-2 h-4 w-4" />
+            Salvar Rota
+          </Button>
+          <Button 
+            variant="outline"
+            className="flex-1"
+            onClick={() => {
+              // TODO: Implementar visualização de rota no mapa
+              alert('Funcionalidade de visualizar rota será implementada em breve!');
+            }}
+          >
+            <MapPin className="mr-2 h-4 w-4" />
+            Visualizar Rota
+          </Button>
         </div>
       </CardContent>
     </Card>
