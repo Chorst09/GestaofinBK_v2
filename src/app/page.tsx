@@ -135,8 +135,10 @@ export default function MainPage() {
             }`}
           />
         ))}
-        <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 bg-black/40">
-          <h1 className="text-4xl font-headline font-bold">Bem-vindo ao Finanças Zen</h1>
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4 bg-black/50">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight" style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Bem-vindo ao Finanças Zen
+          </h1>
 
           <div className="absolute top-4 right-4 flex items-center gap-4">
             {isInitializing ? (
@@ -155,13 +157,20 @@ export default function MainPage() {
                 </Button>
               </div>
             ) : (
-              <Button variant="outline" onClick={() => login()} className="bg-transparent border-white text-white hover:bg-white/20">
+              <Button 
+                variant="outline" 
+                onClick={() => login()} 
+                className="bg-white/10 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-gray-900 transition-all duration-300 font-semibold px-6 py-2"
+                style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}
+              >
                 <LogIn className="mr-2 h-4 w-4" /> Entrar com Google
               </Button>
             )}
           </div>
 
-          <p className="mt-2 text-lg text-primary-foreground/90">Sua plataforma completa para controle financeiro pessoal.</p>
+          <p className="mt-4 text-xl md:text-2xl text-white font-light" style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif", fontWeight: 300 }}>
+            Sua plataforma completa para controle financeiro pessoal.
+          </p>
           
           {/* Carousel indicators */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
