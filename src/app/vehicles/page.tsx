@@ -194,7 +194,7 @@ export default function VehiclesPage() {
           </Button>
           {vehicles.length > 0 && (
             <Select onValueChange={setSelectedVehicleId} value={selectedVehicleId || ''}>
-              <SelectTrigger className="w-full sm:w-[280px] bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 shadow-sm">
+              <SelectTrigger className="w-full sm:w-[280px] bg-gradient-to-r from-green-600 to-green-700 text-white border-green-500 shadow-sm">
                 <SelectValue placeholder="Selecione um veículo" />
               </SelectTrigger>
               <SelectContent>
@@ -243,7 +243,7 @@ export default function VehiclesPage() {
         </Card>
       ) : (
         <div>
-            <Card className="mb-6 bg-gradient-to-r from-green-600 to-green-700 text-white border-0 shadow-xl">
+            <Card className="mb-6 bg-gradient-to-r from-slate-500 to-slate-600 text-white border-0 shadow-xl">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-6">
