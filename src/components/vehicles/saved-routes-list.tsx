@@ -99,7 +99,7 @@ export function SavedRoutesList() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Navigation className="h-3 w-3" />
@@ -119,7 +119,14 @@ export function SavedRoutesList() {
                   <DollarSign className="h-3 w-3" />
                   Combustível
                 </div>
-                <p className="font-semibold">R$ {route.fuelCost}</p>
+                <p className="font-semibold text-blue-600">R$ {route.fuelCost}</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <DollarSign className="h-3 w-3" />
+                  Pedágios
+                </div>
+                <p className="font-semibold text-orange-600">R$ {route.tollCost}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
