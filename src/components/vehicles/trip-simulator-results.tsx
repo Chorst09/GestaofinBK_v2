@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useSimulatedRoutes } from '@/hooks/useSimulatedRoutes';
 import { 
   Navigation, 
   Fuel, 
@@ -12,7 +14,8 @@ import {
   Clock, 
   MapPin,
   Car,
-  Receipt
+  Receipt,
+  Save
 } from 'lucide-react';
 
 interface TripSimulatorResultsProps {
@@ -32,6 +35,43 @@ interface TripSimulatorResultsProps {
 }
 
 export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
+  const { toast } = useToast();
+  const { addRoute } = useSimulatedRoutes();
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleSaveRoute = () => {
+    setIsSaving(true);
+    try {
+      addRoute({
+        vehicleId: result.vehicle.id,
+        vehicleName: result.vehicle.name,
+        origin: result.origin,
+        destination: result.destination,
+        distance: result.distance,
+        duration: result.duration,
+        fuelLiters: result.fuelLiters,
+        fuelCost: result.fuelCost,
+        tollCost: result.tollCost,
+        totalCost: result.totalCost,
+        isRoundTrip: result.isRoundTrip || false,
+        tollPlazas: result.tollPlazas,
+      });
+
+      toast({
+        title: "Rota salva com sucesso!",
+        description: `A rota de ${result.origin} para ${result.destination} foi salva.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar rota",
+        description: "Não foi possível salvar a rota. Tente novamente.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Card className="border-2 border-primary/20">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
@@ -192,20 +232,21 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
         <div className="flex flex-col sm:flex-row gap-3">
           <Button 
             className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            onClick={() => {
-              // TODO: Implementar salvamento de rota
-              alert('Funcionalidade de salvar rota será implementada em breve!');
-            }}
+            onClick={handleSaveRoute}
+            disabled={isSaving}
           >
-            <Navigation className="mr-2 h-4 w-4" />
-            Salvar Rota
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? 'Salvando...' : 'Salvar Rota'}
           </Button>
           <Button 
             variant="outline"
             className="flex-1"
             onClick={() => {
               // TODO: Implementar visualização de rota no mapa
-              alert('Funcionalidade de visualizar rota será implementada em breve!');
+              toast({
+                title: "Em desenvolvimento",
+                description: "A visualização de rota no mapa será implementada em breve!",
+              });
             }}
           >
             <MapPin className="mr-2 h-4 w-4" />

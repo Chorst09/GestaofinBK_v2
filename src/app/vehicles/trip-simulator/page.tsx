@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calculator, Fuel, DollarSign, Clock, Navigation } from 'lucide-react';
+import { ArrowLeft, Calculator, Fuel, DollarSign, Clock, Navigation, BookmarkIcon } from 'lucide-react';
 import { TripSimulatorForm } from '@/components/vehicles/trip-simulator-form';
 import { TripSimulatorResults } from '@/components/vehicles/trip-simulator-results';
+import { SavedRoutesList } from '@/components/vehicles/saved-routes-list';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function TripSimulatorPage() {
   const router = useRouter();
@@ -62,16 +64,35 @@ export default function TripSimulatorPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TripSimulatorForm
-          vehicles={vehicles}
-          onSimulate={setSimulationResult}
-        />
+      <Tabs defaultValue="simulator" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="simulator">
+            <Calculator className="h-4 w-4 mr-2" />
+            Simulador
+          </TabsTrigger>
+          <TabsTrigger value="saved">
+            <BookmarkIcon className="h-4 w-4 mr-2" />
+            Rotas Salvas
+          </TabsTrigger>
+        </TabsList>
 
-        {simulationResult && (
-          <TripSimulatorResults result={simulationResult} />
-        )}
-      </div>
+        <TabsContent value="simulator" className="mt-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <TripSimulatorForm
+              vehicles={vehicles}
+              onSimulate={setSimulationResult}
+            />
+
+            {simulationResult && (
+              <TripSimulatorResults result={simulationResult} />
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="saved" className="mt-6">
+          <SavedRoutesList />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

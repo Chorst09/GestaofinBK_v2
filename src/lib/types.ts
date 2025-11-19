@@ -215,6 +215,23 @@ export interface TravelEvent {
 export type TravelEventFormData = Omit<TravelEvent, 'id'>;
 export type TravelRouteFormData = Omit<TravelRoute, 'id' | 'createdAt' | 'updatedAt'>;
 
+// ---- Simulated Trip Route Types ----
+export interface SimulatedTripRoute {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  origin: string;
+  destination: string;
+  distance: string;
+  duration: string;
+  fuelLiters: string;
+  fuelCost: string;
+  tollCost: string;
+  totalCost: string;
+  isRoundTrip: boolean;
+  tollPlazas?: Array<{ name: string; value: number; route: string; concessionaire: string }>;
+  createdAt: string;
+}
 
 // ---- Backup & Google Drive Types ----
 
