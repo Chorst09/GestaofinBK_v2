@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { GoogleMapWrapper } from './google-map-wrapper';
 import { 
   MapPin, 
   Navigation, 
@@ -32,146 +33,19 @@ interface RouteMapViewerProps {
 }
 
 export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
-  const mapRef = React.useRef<HTMLDivElement>(null);
-  const mapInstanceRef = React.useRef<google.maps.Map | null>(null);
-  const directionsRendererRef = React.useRef<google.maps.DirectionsRenderer | null>(null);
   const [mapLoaded, setMapLoaded] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = React.useState(false);
+  const [showMap, setShowMap] = React.useState(true);
 
-  React.useEffect(() => {
-    if (!mapRef.current || isInitializing) return;
-    
-    setIsInitializing(true);
+  const handleMapLoad = React.useCallback(() => {
+    setMapLoaded(true);
+    setError(null);
+  }, []);
 
-    // Verificar se a API key está configurada
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-      setError('Chave da API do Google Maps não configurada');
-      return;
-    }
-
-    // Carregar Google Maps API
-    const loadGoogleMaps = () => {
-      // Verificar se já está carregado
-      if (typeof window !== 'undefined' && window.google && window.google.maps) {
-        setTimeout(() => initMap(), 100);
-        return;
-      }
-
-      // Verificar se o script já está sendo carregado
-      const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-      if (existingScript) {
-        // Aguardar o carregamento
-        const checkGoogle = setInterval(() => {
-          if (window.google && window.google.maps) {
-            clearInterval(checkGoogle);
-            initMap();
-          }
-        }, 100);
-        
-        // Timeout após 10 segundos
-        setTimeout(() => {
-          clearInterval(checkGoogle);
-          if (!window.google || !window.google.maps) {
-            setError('Timeout ao carregar Google Maps');
-          }
-        }, 10000);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        // Aguardar um pouco para garantir que tudo está carregado
-        setTimeout(() => initMap(), 100);
-      };
-      script.onerror = () => setError('Erro ao carregar Google Maps');
-      document.head.appendChild(script);
-    };
-
-    const initMap = () => {
-      if (!mapRef.current) {
-        setIsInitializing(false);
-        return;
-      }
-      
-      if (typeof window === 'undefined' || !window.google || !window.google.maps) {
-        setError('Google Maps não está disponível');
-        setIsInitializing(false);
-        return;
-      }
-
-      try {
-        // Limpar mapa anterior se existir
-        if (directionsRendererRef.current) {
-          directionsRendererRef.current.setMap(null);
-        }
-
-        const map = new google.maps.Map(mapRef.current, {
-          zoom: 7,
-          center: { lat: -25.4284, lng: -49.2733 }, // Curitiba como centro padrão
-          mapTypeControl: true,
-          streetViewControl: false,
-          fullscreenControl: true,
-        });
-
-        mapInstanceRef.current = map;
-
-        const directionsService = new google.maps.DirectionsService();
-        const directionsRenderer = new google.maps.DirectionsRenderer({
-          map: map,
-          suppressMarkers: false,
-          polylineOptions: {
-            strokeColor: '#2563eb',
-            strokeWeight: 5,
-            strokeOpacity: 0.8,
-          },
-        });
-
-        directionsRendererRef.current = directionsRenderer;
-
-        // Calcular e exibir rota
-        directionsService.route(
-          {
-            origin: route.origin,
-            destination: route.destination,
-            travelMode: google.maps.TravelMode.DRIVING,
-          },
-          (result, status) => {
-            if (status === 'OK' && result) {
-              if (directionsRendererRef.current) {
-                directionsRendererRef.current.setDirections(result);
-                setMapLoaded(true);
-              }
-            } else {
-              setError(`Erro ao calcular rota: ${status}`);
-            }
-            setIsInitializing(false);
-          }
-        );
-      } catch (err) {
-        setError('Erro ao inicializar o mapa');
-        console.error('Erro ao inicializar mapa:', err);
-        setIsInitializing(false);
-      }
-    };
-
-    loadGoogleMaps();
-
-    // Cleanup
-    return () => {
-      if (directionsRendererRef.current) {
-        directionsRendererRef.current.setMap(null);
-        directionsRendererRef.current = null;
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [route.origin, route.destination]);
+  const handleMapError = React.useCallback((errorMessage: string) => {
+    setError(errorMessage);
+    setMapLoaded(false);
+  }, []);
 
   return (
     <Card className="border-2 border-primary/20">
@@ -193,13 +67,7 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
       </CardHeader>
       <CardContent className="pt-6 space-y-4">
         {/* Mapa */}
-        <div 
-          ref={mapRef} 
-          className="w-full h-[400px] rounded-lg border-2 border-muted bg-muted"
-          data-1p-ignore
-          data-lpignore="true"
-          data-form-type="other"
-        >
+        <div className="w-full h-[400px] rounded-lg border-2 border-muted bg-muted overflow-hidden">
           {error ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-2 p-4">
@@ -209,13 +77,25 @@ export function RouteMapViewer({ route, onClose }: RouteMapViewerProps) {
                 </p>
               </div>
             </div>
-          ) : !mapLoaded && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-sm text-muted-foreground">Carregando mapa...</p>
-              </div>
-            </div>
+          ) : (
+            <>
+              {!mapLoaded && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-sm text-muted-foreground">Carregando mapa...</p>
+                  </div>
+                </div>
+              )}
+              {showMap && (
+                <GoogleMapWrapper
+                  origin={route.origin}
+                  destination={route.destination}
+                  onLoad={handleMapLoad}
+                  onError={handleMapError}
+                />
+              )}
+            </>
           )}
         </div>
 
