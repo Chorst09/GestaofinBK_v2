@@ -205,6 +205,43 @@ export default function TravelPage() {
                       {travel.description && (
                         <p className="text-sm text-muted-foreground mt-2">{travel.description}</p>
                       )}
+                      {travel.transportCosts && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            {travel.travelType === 'car' && <span>🚗</span>}
+                            {travel.travelType === 'bus' && <span>🚌</span>}
+                            {travel.travelType === 'plane' && <span>✈️</span>}
+                            <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                              Custos de Transporte Calculados
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">Veículo:</span>
+                              <span className="ml-1 font-medium">{travel.transportCosts.vehicleName}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Distância:</span>
+                              <span className="ml-1 font-medium">{travel.transportCosts.distance} km</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Combustível:</span>
+                              <span className="ml-1 font-medium text-blue-600">R$ {travel.transportCosts.fuelCost?.toFixed(2)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Pedágios:</span>
+                              <span className="ml-1 font-medium text-orange-600">R$ {travel.transportCosts.tollCost?.toFixed(2)}</span>
+                            </div>
+                            <div className="col-span-2">
+                              <span className="text-muted-foreground">Total Transporte:</span>
+                              <span className="ml-1 font-semibold text-green-600">R$ {travel.transportCosts.totalCost?.toFixed(2)}</span>
+                              {travel.transportCosts.isRoundTrip && (
+                                <Badge variant="secondary" className="ml-2 text-xs">Ida e Volta</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button 

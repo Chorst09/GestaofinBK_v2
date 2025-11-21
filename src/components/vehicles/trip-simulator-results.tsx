@@ -7,7 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSimulatedRoutes } from '@/hooks/useSimulatedRoutes';
+import { useTravelEvents } from '@/hooks/useTravelEvents';
 import { RouteMapViewer } from './route-map-viewer';
+import { useRouter } from 'next/navigation';
 import { 
   Navigation, 
   Fuel, 
@@ -16,7 +18,8 @@ import {
   MapPin,
   Car,
   Receipt,
-  Save
+  Save,
+  Plane
 } from 'lucide-react';
 
 interface TripSimulatorResultsProps {
@@ -37,9 +40,80 @@ interface TripSimulatorResultsProps {
 
 export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const { addRoute } = useSimulatedRoutes();
+  const { addTravelEvent } = useTravelEvents();
   const [isSaving, setIsSaving] = React.useState(false);
   const [showMap, setShowMap] = React.useState(false);
+  const [pendingTravelData, setPendingTravelData] = React.useState<any>(null);
+
+  // Verificar se há dados de viagem pendentes
+  React.useEffect(() => {
+    const data = sessionStorage.getItem('pendingTravelData');
+    if (data) {
+      try {
+        setPendingTravelData(JSON.parse(data));
+      } catch (e) {
+        console.error('Error parsing pending travel data:', e);
+      }
+    }
+  }, []);
+
+  const handleCreateTravelWithCosts = () => {
+    if (!pendingTravelData) return;
+
+    setIsSaving(true);
+    try {
+      // Criar viagem com os custos do simulador
+      const travelData = {
+        name: pendingTravelData.name,
+        destination: pendingTravelData.destination,
+        startDate: pendingTravelData.startDate,
+        endDate: pendingTravelData.endDate,
+        totalBudget: pendingTravelData.totalBudget,
+        budgetByCategory: pendingTravelData.budgetItems || [],
+        description: pendingTravelData.description || '',
+        status: pendingTravelData.status || 'planned',
+        travelType: 'car' as const,
+        transportCosts: {
+          vehicleId: result.vehicle.id,
+          vehicleName: result.vehicle.name,
+          origin: result.origin,
+          destination: result.destination,
+          distance: result.distance,
+          duration: result.duration,
+          fuelCost: parseFloat(result.fuelCost),
+          tollCost: parseFloat(result.tollCost),
+          totalCost: parseFloat(result.totalCost),
+          isRoundTrip: result.isRoundTrip || false,
+        },
+      };
+
+      addTravelEvent(travelData);
+
+      // Limpar dados pendentes
+      sessionStorage.removeItem('pendingTravelData');
+      setPendingTravelData(null);
+
+      toast({
+        title: "Viagem criada com sucesso!",
+        description: `A viagem "${travelData.name}" foi criada com os custos de transporte calculados.`,
+      });
+
+      // Redirecionar para a página de viagens
+      setTimeout(() => {
+        router.push('/travel');
+      }, 1500);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar viagem",
+        description: "Não foi possível criar a viagem. Tente novamente.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSaveRoute = () => {
     setIsSaving(true);
@@ -229,6 +303,31 @@ export function TripSimulatorResults({ result }: TripSimulatorResultsProps) {
         </div>
 
         <Separator />
+
+        {/* Alerta de Viagem Pendente */}
+        {pendingTravelData && (
+          <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border-2 border-green-500">
+            <div className="flex items-start gap-3">
+              <Plane className="h-5 w-5 text-green-600 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-green-800 dark:text-green-200 mb-1">
+                  Viagem Planejada: {pendingTravelData.name}
+                </h4>
+                <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+                  Destino: {pendingTravelData.destination}
+                </p>
+                <Button
+                  onClick={handleCreateTravelWithCosts}
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Plane className="mr-2 h-4 w-4" />
+                  {isSaving ? 'Criando...' : 'Criar Viagem com Estes Custos'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Botões de Ação */}
         <div className="flex flex-col sm:flex-row gap-3">
