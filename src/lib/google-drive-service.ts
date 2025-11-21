@@ -16,6 +16,7 @@ const BACKUP_FILE_NAME = 'financas-zen-backup.json';
 let tokenClient: any | null = null;
 let onAuthChangeCallback: (isAuthorized: boolean, profile?: UserProfile, data?: BackupData | null, error?: string) => void;
 let initPromise: Promise<void> | null = null;
+let isGoogleDriveDisabled = false; // Flag para desabilitar Google Drive em caso de erro persistente
 
 
 /**
@@ -207,27 +208,43 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
     if (initPromise) {
         return initPromise;
     }
+    
+    if (isGoogleDriveDisabled) {
+        console.warn('Google Drive está desabilitado devido a erros anteriores');
+        return Promise.resolve();
+    }
 
     initPromise = (async () => {
         onAuthChangeCallback = callback;
-
-        const isClientIdInvalid = !CLIENT_ID || CLIENT_ID.trim() === '' || CLIENT_ID.includes('COLE_SEU_ID_DE_CLIENTE_OAUTH_AQUI');
-        const isApiKeyInvalid = !API_KEY || API_KEY.trim() === '' || API_KEY.includes('COLE_SUA_CHAVE_DE_API_AQUI');
-
-        if (isApiKeyInvalid || isClientIdInvalid) {
-            const isProduction = process.env.NODE_ENV === 'production';
-            const configError = isProduction 
-              ? "As credenciais do Google (API Key e Client ID) não foram configuradas para o ambiente de produção. Adicione as variáveis de ambiente nas configurações do seu provedor de hospedagem."
-              : "Credenciais do Google não configuradas. Por favor, crie ou verifique seu arquivo .env.local e adicione sua Chave de API e ID de Cliente OAuth, conforme as instruções no arquivo .env.local.template.";
-            onAuthChangeCallback(false, undefined, undefined, configError);
-            throw new Error(configError);
-        }
-
+        
         try {
-            await Promise.all([
-                loadScript('https://apis.google.com/js/api.js'),
-                loadScript('https://accounts.google.com/gsi/client')
-            ]);
+            const isClientIdInvalid = !CLIENT_ID || CLIENT_ID.trim() === '' || CLIENT_ID.includes('COLE_SEU_ID_DE_CLIENTE_OAUTH_AQUI');
+            const isApiKeyInvalid = !API_KEY || API_KEY.trim() === '' || API_KEY.includes('COLE_SUA_CHAVE_DE_API_AQUI');
+
+            if (isApiKeyInvalid || isClientIdInvalid) {
+                const isProduction = process.env.NODE_ENV === 'production';
+                const configError = isProduction 
+                  ? "As credenciais do Google (API Key e Client ID) não foram configuradas para o ambiente de produção. O backup no Google Drive está desabilitado."
+                  : "Credenciais do Google não configuradas. O backup no Google Drive está desabilitado. Para habilitar, configure as variáveis NEXT_PUBLIC_GOOGLE_API_KEY e NEXT_PUBLIC_GOOGLE_CLIENT_ID no arquivo .env.local";
+                
+                console.warn(configError);
+                onAuthChangeCallback(false, undefined, undefined, configError);
+                
+                // Não lançar erro, apenas avisar que o Google Drive está desabilitado
+                return;
+            }
+            try {
+                await Promise.all([
+                    loadScript('https://apis.google.com/js/api.js'),
+                    loadScript('https://accounts.google.com/gsi/client')
+                ]);
+            } catch (scriptError) {
+                // Se falhar ao carregar os scripts, desabilitar silenciosamente
+                isGoogleDriveDisabled = true;
+                onAuthChangeCallback(false, undefined, undefined, null);
+                initPromise = null;
+                return;
+            }
             
             const gapi = (window as any).gapi;
             const google = (window as any).google;
@@ -235,24 +252,59 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
             if (!gapi) throw new Error("A biblioteca GAPI do Google (api.js) não foi carregada corretamente. Verifique sua conexão ou extensões de navegador.");
             if (!google) throw new Error("A biblioteca GIS do Google (gsi/client) não foi carregada corretamente. Verifique sua conexão ou extensões de navegador.");
             
-            await new Promise<void>((resolve, reject) => {
-                gapi.load('client', {
-                    callback: async () => {
-                        try {
-                            await gapi.client.init({
-                                apiKey: API_KEY,
-                                discoveryDocs: [DISCOVERY_DOC],
-                            });
-                            resolve();
-                        } catch (e: any) {
-                            reject(new Error(`O cliente GAPI (Drive API) falhou ao carregar: ${JSON.stringify(e)}`));
-                        }
-                    },
-                    onerror: (err: any) => reject(new Error(`O cliente GAPI (Drive API) falhou ao carregar: ${JSON.stringify(err)}`)),
-                    timeout: 10000,
-                    ontimeout: () => reject(new Error('O carregamento do cliente GAPI (Drive API) expirou.'))
-                });
-            });
+            // Tentar inicializar com retry (apenas 1 tentativa para não demorar)
+            let lastError: any = null;
+            let retries = 1;
+            
+            for (let attempt = 0; attempt < retries; attempt++) {
+                try {
+                    await new Promise<void>((resolve, reject) => {
+                        const timeoutId = setTimeout(() => {
+                            reject(new Error('timeout'));
+                        }, 5000); // Timeout de 5 segundos
+                        
+                        gapi.load('client', {
+                            callback: async () => {
+                                try {
+                                    await gapi.client.init({
+                                        apiKey: API_KEY,
+                                        discoveryDocs: [DISCOVERY_DOC],
+                                    });
+                                    clearTimeout(timeoutId);
+                                    console.log('✅ Google Drive conectado');
+                                    resolve();
+                                } catch (e: any) {
+                                    clearTimeout(timeoutId);
+                                    reject(e);
+                                }
+                            },
+                            onerror: (err: any) => {
+                                clearTimeout(timeoutId);
+                                reject(err);
+                            },
+                        });
+                    });
+                    
+                    // Se chegou aqui, inicializou com sucesso
+                    break;
+                    
+                } catch (e: any) {
+                    lastError = e;
+                    // Não tentar novamente, apenas falhar silenciosamente
+                    throw e;
+                }
+            }
+            
+            // Se esgotou todas as tentativas
+            if (lastError) {
+                const errorMsg = lastError.message || JSON.stringify(lastError);
+                if (errorMsg.includes('502') || errorMsg.includes('503') || errorMsg.includes('Bad Gateway') || errorMsg.includes('timeout')) {
+                    isGoogleDriveDisabled = true; // Desabilitar temporariamente
+                    throw new Error('NETWORK_ERROR: Google Drive API temporariamente indisponível');
+                } else {
+                    throw new Error(`O cliente GAPI (Drive API) falhou ao carregar: ${errorMsg}`);
+                }
+            }
 
             if (!google.accounts?.oauth2) throw new Error("O módulo de autenticação do Google (GIS OAuth2) não está disponível. A biblioteca pode ter sido bloqueada.");
             if (typeof google.accounts.oauth2.initTokenClient !== 'function') throw new Error("A função 'initTokenClient' do Google não foi encontrada. A biblioteca GIS pode ter falhado ao carregar.");
@@ -303,10 +355,26 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
             if (!tokenClient) throw new Error("A inicialização do cliente de token do Google (initTokenClient) retornou um valor nulo, indicando uma falha.");
             
         } catch (error: any) {
-            console.error("Google Drive initialization failed:", error);
-            const errorMessage = `A inicialização do Google Drive falhou: ${error.message}. Se o problema persistir, tente recarregar a página, desativar extensões (como bloqueadores de anúncio) ou verificar a sua conexão com a internet.`;
-            onAuthChangeCallback(false, undefined, undefined, errorMessage);
-            initPromise = null; // Reset promise on failure
+            const errorMsg = error.message || 'Erro desconhecido';
+            
+            // Se for erro de rede (502, 503, timeout, API discovery), desabilitar silenciosamente
+            if (errorMsg.includes('NETWORK_ERROR') || 
+                errorMsg.includes('502') || 
+                errorMsg.includes('503') || 
+                errorMsg.includes('Bad Gateway') ||
+                errorMsg.includes('API discovery') ||
+                errorMsg.includes('timeout')) {
+                
+                isGoogleDriveDisabled = true; // Desabilitar para não tentar novamente
+                onAuthChangeCallback(false, undefined, undefined, null); // Sem erro para o usuário
+                initPromise = null;
+                return; // Sair silenciosamente
+            }
+            
+            // Para outros erros, não mostrar no console, apenas desabilitar
+            isGoogleDriveDisabled = true;
+            onAuthChangeCallback(false, undefined, undefined, null);
+            initPromise = null;
         }
     })();
 
@@ -314,8 +382,51 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
 }
 
 export function handleAuthClick(options: { prompt?: string } = {}) {
+    // Se o Google Drive foi desabilitado por erro de rede, tentar reinicializar
+    if (isGoogleDriveDisabled) {
+        isGoogleDriveDisabled = false;
+        initPromise = null;
+        
+        // Tentar reinicializar e fazer login
+        if (onAuthChangeCallback) {
+            initClient(onAuthChangeCallback).then(() => {
+                // Após reinicializar, tentar fazer login novamente
+                if (tokenClient) {
+                    const tokenOptions: { prompt?: string } = {};
+                    if (options.prompt) {
+                        tokenOptions.prompt = options.prompt;
+                    }
+                    tokenClient.requestAccessToken(tokenOptions);
+                } else {
+                    const errorMsg = "Falha ao conectar com o Google Drive. Verifique suas credenciais.";
+                    onAuthChangeCallback(false, undefined, undefined, errorMsg);
+                }
+            }).catch((error) => {
+                // Verificar o tipo de erro para dar mensagem mais específica
+                const errorMsg = error?.message || '';
+                let userMessage = "Não foi possível conectar ao Google Drive. ";
+                
+                if (errorMsg.includes('NETWORK_ERROR') || errorMsg.includes('502') || errorMsg.includes('503') || errorMsg.includes('timeout')) {
+                    userMessage += "O serviço está temporariamente indisponível.";
+                } else if (errorMsg.includes('API has not been used') || errorMsg.includes('Enable the API')) {
+                    userMessage += "A API do Google Drive não está habilitada no seu projeto.";
+                } else if (errorMsg.includes('Invalid Credentials') || errorMsg.includes('API Key')) {
+                    userMessage += "Suas credenciais estão incorretas.";
+                } else {
+                    userMessage += "Verifique sua conexão com a internet.";
+                }
+                
+                isGoogleDriveDisabled = true; // Marcar como desabilitado novamente
+                onAuthChangeCallback(false, undefined, undefined, userMessage);
+            });
+            return;
+        }
+    }
+    
     if (!tokenClient) {
-        throw new Error("Cliente Google não inicializado. A inicialização pode ter falhado. Verifique sua conexão com a internet, desative bloqueadores de anúncio e tente recarregar a página. Se o erro persistir, verifique o console para mais detalhes.");
+        const error = "Google Drive não está configurado. Para habilitar o backup na nuvem, configure as credenciais do Google OAuth no arquivo .env.local. O sistema continuará funcionando normalmente com armazenamento local.";
+        console.warn(error);
+        throw new Error(error);
     };
     
     const tokenOptions: { prompt?: string } = {};
@@ -324,6 +435,16 @@ export function handleAuthClick(options: { prompt?: string } = {}) {
     }
     
     tokenClient.requestAccessToken(tokenOptions);
+}
+
+/**
+ * Reabilita o Google Drive após ter sido desabilitado por erro
+ */
+export function resetGoogleDrive() {
+    isGoogleDriveDisabled = false;
+    initPromise = null;
+    tokenClient = null;
+    console.log('Google Drive foi reabilitado. Recarregue a página para tentar conectar novamente.');
 }
 
 export function handleSignoutClick(): Promise<void> {

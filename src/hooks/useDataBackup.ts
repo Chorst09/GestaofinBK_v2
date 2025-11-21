@@ -12,6 +12,11 @@ import { useScheduledMaintenances } from './useScheduledMaintenances';
 import { useFinancialGoals } from './useFinancialGoals';
 import { useCategories } from './useCategories';
 import { useInvestments } from './useInvestments';
+import { useTravelEvents } from './useTravelEvents';
+import { useRenovations } from './useRenovations';
+import { useRenovationExpenses } from './useRenovationExpenses';
+import { useSuppliers } from './useSuppliers';
+import { useMaterials } from './useMaterials';
 import type { BackupData, UserProfile, Transaction, BankAccount, CreditCard, ForecastItem, Vehicle, VehicleExpense, ScheduledMaintenance, FinancialGoal, GoalContribution, CustomCategory, FixedIncomeAsset, VariableIncomeAsset, DataBackupContextType } from '@/lib/types';
 import * as GoogleDriveService from '@/lib/google-drive-service';
 import { useToast } from '@/hooks/use-toast';
@@ -33,8 +38,13 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
   const { financialGoals, setFinancialGoals, goalContributions, setGoalContributions, isReady: goalsReady } = useFinancialGoals(true);
   const { customCategories, setCustomCategories, isReady: categoriesReady } = useCategories(true);
   const { fixedIncomeAssets, setFixedIncomeAssets, variableIncomeAssets, setVariableIncomeAssets, isReady: investmentsReady } = useInvestments(true);
+  const { travelEvents, setTravelEvents, isReady: travelReady } = useTravelEvents(true);
+  const { renovations, setRenovations, isReady: renovationsReady } = useRenovations(true);
+  const { renovationExpenses, setRenovationExpenses, isReady: renovationExpensesReady } = useRenovationExpenses(true);
+  const { suppliers, setSuppliers, isReady: suppliersReady } = useSuppliers(true);
+  const { materials, setMaterials, isReady: materialsReady } = useMaterials(true);
 
-  const isDataLoaded = transactionsReady && bankAccountsReady && creditCardsReady && forecastItemsReady && vehiclesReady && vehicleExpensesReady && maintenancesReady && goalsReady && categoriesReady && investmentsReady;
+  const isDataLoaded = transactionsReady && bankAccountsReady && creditCardsReady && forecastItemsReady && vehiclesReady && vehicleExpensesReady && maintenancesReady && goalsReady && categoriesReady && investmentsReady && travelReady && renovationsReady && renovationExpensesReady && suppliersReady && materialsReady;
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -60,7 +70,13 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     customCategories,
     fixedIncomeAssets,
     variableIncomeAssets,
-  }), [transactions, bankAccounts, creditCards, forecastItems, vehicles, vehicleExpenses, scheduledMaintenances, financialGoals, goalContributions, customCategories, fixedIncomeAssets, variableIncomeAssets]);
+    travelEvents,
+    renovations,
+    renovationExpenses,
+    suppliers,
+    materials,
+    cashFlowEntries: [], // TODO: Implementar hook useCashFlowEntries
+  }), [transactions, bankAccounts, creditCards, forecastItems, vehicles, vehicleExpenses, scheduledMaintenances, financialGoals, goalContributions, customCategories, fixedIncomeAssets, variableIncomeAssets, travelEvents, renovations, renovationExpenses, suppliers, materials]);
 
   const restoreAllData = useCallback((backupData: BackupData) => {
     if (!backupData) return;
@@ -76,7 +92,12 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     setCustomCategories(backupData.customCategories || []);
     setFixedIncomeAssets(backupData.fixedIncomeAssets || []);
     setVariableIncomeAssets(backupData.variableIncomeAssets || []);
-  }, [setTransactions, setBankAccounts, setCreditCards, setForecastItems, setVehicles, setVehicleExpenses, setScheduledMaintenances, setFinancialGoals, setGoalContributions, setCustomCategories, setFixedIncomeAssets, setVariableIncomeAssets]);
+    setTravelEvents(backupData.travelEvents || []);
+    setRenovations(backupData.renovations || []);
+    setRenovationExpenses(backupData.renovationExpenses || []);
+    setSuppliers(backupData.suppliers || []);
+    setMaterials(backupData.materials || []);
+  }, [setTransactions, setBankAccounts, setCreditCards, setForecastItems, setVehicles, setVehicleExpenses, setScheduledMaintenances, setFinancialGoals, setGoalContributions, setCustomCategories, setFixedIncomeAssets, setVariableIncomeAssets, setTravelEvents, setRenovations, setRenovationExpenses, setSuppliers, setMaterials]);
 
   const saveToDrive = useCallback(async (options?: { showSuccessToast?: boolean }) => {
     if (!isLoggedIn) return;
@@ -131,6 +152,14 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
         setError(null);
     } else if (error) {
         setError(error);
+        // Mostrar toast apenas para erros que não são de configuração
+        if (!error.includes("não está configurado") && !error.includes("não configuradas")) {
+            toast({
+                variant: 'destructive',
+                title: "Erro no Google Drive",
+                description: error,
+            });
+        }
     }
 
     if (isAuthorized && data) {
@@ -161,7 +190,21 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
         await GoogleDriveService.initClient(updateAuthState);
       } catch (e: any) {
         console.error("Initialization failed:", e);
-        setError("Não foi possível conectar ao Google Drive. Verifique a configuração e sua conexão.");
+        const errorMessage = e.message || "Erro desconhecido";
+        
+        // Se for erro de configuração, não mostrar como erro crítico
+        if (errorMessage.includes("não configuradas") || errorMessage.includes("não está configurado")) {
+          console.warn("Google Drive backup desabilitado - credenciais não configuradas");
+          setError(null); // Não mostrar erro, apenas avisar no console
+        } 
+        // Se for erro de rede, não bloquear o app
+        else if (errorMessage.includes("NETWORK_ERROR") || errorMessage.includes("502") || errorMessage.includes("503") || errorMessage.includes("Bad Gateway")) {
+          console.warn("Google Drive temporariamente indisponível. Sistema funcionando com armazenamento local.");
+          setError(null); // Não mostrar erro, sistema continua funcionando
+        } 
+        else {
+          setError("Não foi possível conectar ao Google Drive. Verifique a configuração e sua conexão.");
+        }
       } finally {
         setIsInitializing(false);
       }
@@ -190,9 +233,32 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
 
     } catch (e: any) {
       console.error("Login failed:", e);
-      setError(e.message || "O processo de login falhou.");
+      const errorMessage = e.message || "O processo de login falhou.";
+      
+      // Se for erro de configuração, mostrar mensagem mais amigável
+      if (errorMessage.includes("não está configurado") || errorMessage.includes("não configuradas")) {
+        setError("Backup no Google Drive não configurado. O sistema funciona normalmente com armazenamento local.");
+        toast({ 
+          title: "Backup Local Ativo", 
+          description: "O Google Drive não está configurado. Seus dados estão sendo salvos localmente no navegador." 
+        });
+      } else if (errorMessage.includes("Não foi possível conectar") || errorMessage.includes("Verifique sua conexão")) {
+        setError(errorMessage);
+        toast({ 
+          variant: 'destructive',
+          title: "Erro de Conexão", 
+          description: "Não foi possível conectar ao Google Drive. Verifique sua conexão com a internet." 
+        });
+      } else {
+        setError(errorMessage);
+        toast({ 
+          variant: 'destructive',
+          title: "Erro no Login", 
+          description: errorMessage 
+        });
+      }
     }
-  }, [error]);
+  }, [error, toast]);
 
   const logout = useCallback(async () => {
     setError(null);
@@ -251,6 +317,11 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
       setCustomCategories,
       setFixedIncomeAssets,
       setVariableIncomeAssets,
+      setTravelEvents,
+      setRenovations,
+      setRenovationExpenses,
+      setSuppliers,
+      setMaterials,
     },
   };
 

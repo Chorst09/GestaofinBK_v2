@@ -251,7 +251,7 @@ export interface SimulatedTripRoute {
 // ---- Renovation Types ----
 
 export type RenovationStatus = 'planned' | 'in_progress' | 'completed' | 'on_hold';
-export type StageStatus = 'not_started' | 'in_progress' | 'completed';
+export type StageStatus = 'not_started' | 'in_progress' | 'on_hold' | 'completed';
 export type RenovationExpenseCategory = 
   | 'demolition'
   | 'masonry'
@@ -430,6 +430,10 @@ export interface DataBackupContextType {
     setFixedIncomeAssets: (value: FixedIncomeAsset[] | ((val: FixedIncomeAsset[]) => FixedIncomeAsset[])) => void;
     setVariableIncomeAssets: (value: VariableIncomeAsset[] | ((val: VariableIncomeAsset[]) => VariableIncomeAsset[])) => void;
     setTravelEvents: (value: TravelEvent[] | ((val: TravelEvent[]) => TravelEvent[])) => void;
+    setRenovations: (value: Renovation[] | ((val: Renovation[]) => Renovation[])) => void;
+    setRenovationExpenses: (value: RenovationExpense[] | ((val: RenovationExpense[]) => RenovationExpense[])) => void;
+    setSuppliers: (value: Supplier[] | ((val: Supplier[]) => Supplier[])) => void;
+    setMaterials: (value: Material[] | ((val: Material[]) => Material[])) => void;
   };
 }
 
