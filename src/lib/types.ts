@@ -211,6 +211,20 @@ export interface TravelEvent {
   description?: string;
   status: 'planned' | 'ongoing' | 'completed';
   routes?: TravelRoute[];
+  // Tipo de viagem e custos de transporte
+  travelType?: 'car' | 'bus' | 'plane';
+  transportCosts?: {
+    vehicleId?: string;
+    vehicleName?: string;
+    origin?: string;
+    destination?: string;
+    distance?: string;
+    duration?: string;
+    fuelCost?: number;
+    tollCost?: number;
+    totalCost?: number;
+    isRoundTrip?: boolean;
+  };
 }
 export type TravelEventFormData = Omit<TravelEvent, 'id'>;
 export type TravelRouteFormData = Omit<TravelRoute, 'id' | 'createdAt' | 'updatedAt'>;

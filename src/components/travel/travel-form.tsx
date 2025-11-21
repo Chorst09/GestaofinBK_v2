@@ -6,7 +6,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, Calculator } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ const travelFormSchema = z.object({
   totalBudget: z.coerce.number().positive('Orçamento deve ser positivo'),
   description: z.string().optional(),
   status: z.enum(['planned', 'ongoing', 'completed']),
+  travelType: z.enum(['car', 'bus', 'plane']).optional(),
 }).refine(data => data.endDate >= data.startDate, {
   message: 'Data de término deve ser posterior à data de início',
   path: ['endDate'],
@@ -75,6 +77,7 @@ export function TravelForm({
   onUpdateTravelEvent 
 }: TravelFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
   
   const [budgetItems, setBudgetItems] = React.useState<TravelBudgetItem[]>(
     initialData?.budgetByCategory || []
@@ -102,6 +105,8 @@ export function TravelForm({
           status: 'planned',
         },
   });
+
+  const watchTravelType = form.watch('travelType');
 
   const addBudgetItem = () => {
     setBudgetItems([...budgetItems, { category: 'outros', budgetedAmount: 0 }]);
@@ -161,6 +166,32 @@ export function TravelForm({
               <FormControl>
                 <Input placeholder="Ex: Férias em Paris" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="travelType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de Viagem</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de transporte" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="car">🚗 Carro</SelectItem>
+                  <SelectItem value="bus">🚌 Ônibus</SelectItem>
+                  <SelectItem value="plane">✈️ Avião</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Se escolher "Carro", você poderá usar o simulador de viagem para calcular custos
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -381,6 +412,33 @@ export function TravelForm({
             </div>
           )}
         </div>
+
+        {watchTravelType === 'car' && (
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+              💡 Você selecionou viagem de carro. Use o simulador para calcular custos de combustível e pedágios!
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                // Salvar dados do formulário temporariamente
+                const formData = form.getValues();
+                sessionStorage.setItem('pendingTravelData', JSON.stringify({
+                  ...formData,
+                  startDate: formData.startDate.toISOString(),
+                  endDate: formData.endDate.toISOString(),
+                  budgetItems,
+                }));
+                router.push('/vehicles/trip-simulator');
+              }}
+            >
+              <Calculator className="mr-2 h-4 w-4" />
+              Abrir Simulador de Viagem
+            </Button>
+          </div>
+        )}
 
         <Button type="submit" className="w-full">
           {initialData ? 'Atualizar Viagem' : 'Criar Viagem'}
