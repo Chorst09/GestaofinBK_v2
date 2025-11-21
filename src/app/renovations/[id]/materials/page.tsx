@@ -60,9 +60,9 @@ export default function RenovationMaterialsPage() {
       name: newMaterial.name,
       quantity: newMaterial.quantity,
       unit: newMaterial.unit,
-      estimatedCost: newMaterial.estimatedCost,
-      purchased: false,
-      notes: newMaterial.notes,
+      unitPrice: newMaterial.estimatedCost / (newMaterial.quantity || 1),
+      isPurchased: false,
+      isAllocated: false,
     });
 
     setNewMaterial({
@@ -84,7 +84,8 @@ export default function RenovationMaterialsPage() {
     if (material) {
       updateMaterial({
         ...material,
-        purchased: !currentStatus,
+        isPurchased: !currentStatus,
+        purchaseDate: !currentStatus ? new Date().toISOString().split('T')[0] : undefined,
       });
     }
   };
@@ -97,8 +98,8 @@ export default function RenovationMaterialsPage() {
     });
   };
 
-  const purchasedMaterials = renovationMaterials.filter(m => m.purchased).length;
-  const totalEstimatedCost = renovationMaterials.reduce((sum, m) => sum + m.estimatedCost, 0);
+  const purchasedMaterials = renovationMaterials.filter(m => m.isPurchased).length;
+  const totalEstimatedCost = renovationMaterials.reduce((sum, m) => sum + m.totalPrice, 0);
 
   return (
     <div className="space-y-6">
@@ -239,9 +240,9 @@ export default function RenovationMaterialsPage() {
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0 mt-1"
-                    onClick={() => handleTogglePurchased(material.id, material.purchased)}
+                    onClick={() => handleTogglePurchased(material.id, material.isPurchased)}
                   >
-                    {material.purchased ? (
+                    {material.isPurchased ? (
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                     ) : (
                       <Circle className="h-5 w-5 text-muted-foreground" />
@@ -250,10 +251,10 @@ export default function RenovationMaterialsPage() {
                   <Package className="h-5 w-5 text-muted-foreground mt-1" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className={`font-semibold ${material.purchased ? 'line-through text-muted-foreground' : ''}`}>
+                      <h4 className={`font-semibold ${material.isPurchased ? 'line-through text-muted-foreground' : ''}`}>
                         {material.name}
                       </h4>
-                      {material.purchased && (
+                      {material.isPurchased && (
                         <Badge variant="outline" className="text-green-600 border-green-600">
                           Comprado
                         </Badge>
@@ -265,13 +266,10 @@ export default function RenovationMaterialsPage() {
                           Quantidade: {material.quantity} {material.unit}
                         </div>
                       )}
-                      {material.estimatedCost > 0 && (
+                      {material.totalPrice > 0 && (
                         <div className="font-medium">
-                          Custo estimado: {material.estimatedCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          Custo estimado: {material.totalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </div>
-                      )}
-                      {material.notes && (
-                        <p className="italic mt-2">{material.notes}</p>
                       )}
                     </div>
                   </div>

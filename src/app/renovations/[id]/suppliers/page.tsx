@@ -23,7 +23,7 @@ export default function RenovationSuppliersPage() {
   const { suppliers, addSupplier, deleteSupplier } = useSuppliers();
   
   const renovation = getRenovationById(renovationId);
-  const renovationSuppliers = suppliers.filter(s => s.renovationId === renovationId);
+  const renovationSuppliers = suppliers; // Todos os fornecedores (não há filtro por renovationId no tipo)
 
   const [newSupplier, setNewSupplier] = React.useState({
     name: '',
@@ -58,14 +58,10 @@ export default function RenovationSuppliersPage() {
     }
 
     addSupplier({
-      renovationId,
       name: newSupplier.name,
-      category: newSupplier.category,
       contact: newSupplier.contact,
-      phone: newSupplier.phone,
-      email: newSupplier.email,
-      address: newSupplier.address,
-      notes: newSupplier.notes,
+      specialty: newSupplier.category,
+      notes: `${newSupplier.notes}\nTelefone: ${newSupplier.phone}\nEmail: ${newSupplier.email}\nEndereço: ${newSupplier.address}`,
     });
 
     setNewSupplier({
@@ -230,8 +226,8 @@ export default function RenovationSuppliersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold">{supplier.name}</h4>
-                      {supplier.category && (
-                        <Badge variant="outline">{supplier.category}</Badge>
+                      {supplier.specialty && (
+                        <Badge variant="outline">{supplier.specialty}</Badge>
                       )}
                     </div>
                     <div className="space-y-1 text-sm text-muted-foreground">
@@ -239,24 +235,6 @@ export default function RenovationSuppliersPage() {
                         <div className="flex items-center gap-2">
                           <Users className="h-3 w-3" />
                           <span>{supplier.contact}</span>
-                        </div>
-                      )}
-                      {supplier.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3 w-3" />
-                          <span>{supplier.phone}</span>
-                        </div>
-                      )}
-                      {supplier.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-3 w-3" />
-                          <span>{supplier.email}</span>
-                        </div>
-                      )}
-                      {supplier.address && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-3 w-3" />
-                          <span>{supplier.address}</span>
                         </div>
                       )}
                     </div>

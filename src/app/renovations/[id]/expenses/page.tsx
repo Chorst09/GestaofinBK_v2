@@ -26,8 +26,6 @@ const categoryLabels: Record<RenovationExpenseCategory, string> = {
   painting: 'Pintura',
   flooring: 'Piso',
   carpentry: 'Carpintaria',
-  roofing: 'Telhado',
-  windows_doors: 'Portas e Janelas',
   finishing: 'Acabamento',
   labor: 'Mão de Obra',
   materials: 'Materiais',
@@ -81,23 +79,27 @@ export default function RenovationExpensesPage() {
     }
 
     // Criar transação
-    const transaction = addTransaction({
+    addTransaction({
       description: `[Reforma] ${newExpense.description}`,
       amount: -Math.abs(newExpense.amount),
       date: newExpense.date,
       category: 'home',
       type: 'expense',
-      status: 'completed',
-      notes: newExpense.notes,
+      status: 'paid',
     });
+
+    // Pegar a última transação criada (a que acabamos de adicionar)
+    const lastTransaction = transactions[transactions.length - 1] || { id: `temp-${Date.now()}` };
 
     // Criar despesa de reforma
     addRenovationExpense({
       renovationId,
-      transactionId: transaction.id,
+      transactionId: lastTransaction.id,
       category: newExpense.category,
       stageId: newExpense.stageId || undefined,
       supplierId: newExpense.supplierId || undefined,
+      isPaid: true,
+      notes: newExpense.notes,
     });
 
     setNewExpense({
@@ -231,14 +233,13 @@ export default function RenovationExpensesPage() {
             <div className="space-y-2">
               <Label htmlFor="stage">Etapa (opcional)</Label>
               <Select
-                value={newExpense.stageId}
+                value={newExpense.stageId || undefined}
                 onValueChange={(value) => setNewExpense({ ...newExpense, stageId: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma etapa" />
+                  <SelectValue placeholder="Nenhuma etapa selecionada" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
                   {renovation.stages.map((stage) => (
                     <SelectItem key={stage.id} value={stage.id}>{stage.name}</SelectItem>
                   ))}
@@ -307,8 +308,8 @@ export default function RenovationExpensesPage() {
                       <div className="text-lg font-bold text-destructive">
                         {Math.abs(transaction!.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                       </div>
-                      {transaction!.notes && (
-                        <p className="text-sm text-muted-foreground mt-2">{transaction!.notes}</p>
+                      {expense.notes && (
+                        <p className="text-sm text-muted-foreground mt-2">{expense.notes}</p>
                       )}
                     </div>
                     <Button
