@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, LayoutDashboard, List, Upload, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, Tags, LineChart, Plane } from 'lucide-react';
+import { Home, LayoutDashboard, List, Upload, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, Tags, LineChart, Plane, Hammer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Navigation items - Updated with Travel module
+// Navigation items - Updated with Renovations module
 const navItems = [
   { href: '/', label: 'Página Principal', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,6 +27,7 @@ const navItems = [
   { href: '/previsto-vs-realizado', label: 'Previsto x Realizado', icon: ClipboardCheck },
   { href: '/investments', label: 'Investimentos', icon: LineChart },
   { href: '/financial-goals', label: 'Metas Financeiras', icon: Target },
+  { href: '/renovations', label: 'Reformas', icon: Hammer },
   { href: '/travel', label: 'Viagens e Lazer', icon: Plane },
   { href: '/credit-cards', label: 'Cartões de Crédito', icon: CreditCardIcon },
   { href: '/bank-accounts', label: 'Contas Bancárias', icon: BankIcon },
@@ -35,10 +36,15 @@ const navItems = [
   { href: '/import', label: 'Importar Dados', icon: Upload },
 ];
 
+// Debug: verificar se o item está presente
+console.log('NavItems count:', navItems.length);
+console.log('Renovations item:', navItems.find(item => item.href === '/renovations'));
+
 export function AppSidebar() {
   const pathname = usePathname();
-  const { open, isMobile, setOpenMobile }
-   = useSidebar();
+  const { open, isMobile, setOpenMobile } = useSidebar();
+  
+  // Force reload - timestamp: 2024-11-21 10:45
 
   const handleLinkClick = () => {
     if (isMobile) {

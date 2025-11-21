@@ -12,6 +12,7 @@ export interface Transaction {
   bankAccountId?: string; // ID da conta bancária associada, se aplicável
   status: 'paid' | 'pending'; // Status da transação: pago ou pendente
   travelId?: string; // ID da viagem associada, se aplicável
+  renovationId?: string; // ID da reforma associada, se aplicável
 }
 
 export type TransactionFormData = Omit<Transaction, 'id'>;
@@ -247,6 +248,130 @@ export interface SimulatedTripRoute {
   createdAt: string;
 }
 
+// ---- Renovation Types ----
+
+export type RenovationStatus = 'planned' | 'in_progress' | 'completed' | 'on_hold';
+export type StageStatus = 'not_started' | 'in_progress' | 'completed';
+export type RenovationExpenseCategory = 
+  | 'demolition'
+  | 'masonry'
+  | 'plumbing'
+  | 'electrical'
+  | 'painting'
+  | 'flooring'
+  | 'carpentry'
+  | 'finishing'
+  | 'labor'
+  | 'materials'
+  | 'other';
+
+export interface RenovationStage {
+  id: string;
+  renovationId: string;
+  name: string;
+  description?: string;
+  budget: number;
+  startDate: string;
+  endDate: string;
+  status: StageStatus;
+  order: number;
+}
+
+export interface Renovation {
+  id: string;
+  name: string;
+  description?: string;
+  totalBudget: number;
+  safetyMarginPercent: number; // Margem de segurança (ex: 10%)
+  adjustedBudget: number; // Orçamento com margem aplicada
+  startDate: string;
+  endDate: string;
+  status: RenovationStatus;
+  stages: RenovationStage[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RenovationExpense {
+  id: string;
+  renovationId: string;
+  stageId?: string;
+  transactionId: string;
+  category: RenovationExpenseCategory;
+  supplierId?: string;
+  invoiceUrl?: string;
+  photoUrls?: string[];
+  notes?: string;
+  // Cronograma financeiro
+  dueDate?: string; // Data de vencimento/pagamento
+  isPaid: boolean;
+  paidDate?: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  contact?: string;
+  specialty?: string;
+  notes?: string;
+}
+
+export interface SupplierQuote {
+  supplierId: string;
+  supplierName: string;
+  unitPrice: number;
+  totalPrice: number;
+  notes?: string;
+  quotedAt: string;
+}
+
+export interface MaterialAllocation {
+  stageId: string;
+  stageName: string;
+  quantity: number;
+  allocatedCost: number;
+}
+
+export interface Material {
+  id: string;
+  renovationId: string;
+  stageId?: string; // Etapa principal (se não houver rateio)
+  name: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  totalPrice: number;
+  supplierId?: string;
+  isPurchased: boolean;
+  purchaseDate?: string;
+  // Novos campos para funcionalidades avançadas
+  quotes?: SupplierQuote[]; // Cotações de múltiplos fornecedores
+  allocations?: MaterialAllocation[]; // Rateio entre etapas
+  isAllocated: boolean; // Se o material foi rateado
+}
+
+export type RenovationFormData = Omit<Renovation, 'id' | 'createdAt' | 'updatedAt' | 'stages'>;
+export type RenovationStageFormData = Omit<RenovationStage, 'id'>;
+export type RenovationExpenseFormData = Omit<RenovationExpense, 'id'>;
+export type SupplierFormData = Omit<Supplier, 'id'>;
+export type MaterialFormData = Omit<Material, 'id' | 'totalPrice'>;
+
+// Cronograma Financeiro
+export interface CashFlowEntry {
+  id: string;
+  renovationId: string;
+  stageId?: string;
+  description: string;
+  amount: number;
+  type: 'planned_expense' | 'actual_expense' | 'planned_payment' | 'actual_payment';
+  plannedDate: string;
+  actualDate?: string;
+  status: 'pending' | 'paid' | 'overdue';
+  relatedExpenseId?: string;
+}
+
+export type CashFlowEntryFormData = Omit<CashFlowEntry, 'id'>;
+
 // ---- Backup & Google Drive Types ----
 
 export interface UserProfile {
@@ -269,6 +394,11 @@ export interface BackupData {
     fixedIncomeAssets: FixedIncomeAsset[];
     variableIncomeAssets: VariableIncomeAsset[];
     travelEvents: TravelEvent[];
+    renovations: Renovation[];
+    renovationExpenses: RenovationExpense[];
+    suppliers: Supplier[];
+    materials: Material[];
+    cashFlowEntries: CashFlowEntry[];
 }
 
 // Define the shape of the context value

@@ -104,7 +104,13 @@ export default function TravelPage() {
 
   const getTotalSpent = (travelId: string) => {
     const expenses = getTravelExpenses(travelId);
-    return expenses.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const transactionsTotal = expenses.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    // Adiciona os custos de transporte calculados
+    const travel = travelEvents.find(t => t.id === travelId);
+    const transportCosts = travel?.transportCosts?.totalCost || 0;
+    
+    return transactionsTotal + transportCosts;
   };
 
   const getSpentByCategory = (travelId: string) => {
