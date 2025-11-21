@@ -218,18 +218,24 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     
     setError(null);
 
-    try {
-      let prompt: string | undefined = forceConsent ? 'consent' : undefined;
+    let promptOption: string | undefined = forceConsent ? 'consent' : undefined;
 
+    if (isPermissionError) {
+        promptOption = 'consent select_account';
+    } else if (forceConsent) {
+        promptOption = 'consent select_account';
+    }
+
+    try {
       if (isPermissionError) {
           // The most aggressive flow for permission errors.
           await GoogleDriveService.revokeCurrentToken();
-          prompt = 'consent select_account';
-      } else if (forceConsent) {
-          prompt = 'consent select_account';
       }
       
-      GoogleDriveService.handleAuthClick({ prompt });
+      // Se o Google Drive foi desabilitado, tentar reabilitar
+      GoogleDriveService.resetGoogleDrive();
+      
+      GoogleDriveService.handleAuthClick({ prompt: promptOption });
 
     } catch (e: any) {
       console.error("Login failed:", e);
@@ -237,11 +243,17 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
       
       // Se for erro de configuração, mostrar mensagem mais amigável
       if (errorMessage.includes("não está configurado") || errorMessage.includes("não configuradas")) {
-        setError("Backup no Google Drive não configurado. O sistema funciona normalmente com armazenamento local.");
-        toast({ 
-          title: "Backup Local Ativo", 
-          description: "O Google Drive não está configurado. Seus dados estão sendo salvos localmente no navegador." 
-        });
+        // Tentar forçar reinicialização
+        try {
+          await GoogleDriveService.forceReinitialize(updateAuthState);
+          GoogleDriveService.handleAuthClick({ prompt: promptOption });
+        } catch (reinitError) {
+          setError("Backup no Google Drive não configurado. O sistema funciona normalmente com armazenamento local.");
+          toast({ 
+            title: "Backup Local Ativo", 
+            description: "O Google Drive não está configurado. Seus dados estão sendo salvos localmente no navegador." 
+          });
+        }
       } else if (errorMessage.includes("Não foi possível conectar") || errorMessage.includes("Verifique sua conexão")) {
         setError(errorMessage);
         toast({ 
@@ -258,7 +270,7 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
         });
       }
     }
-  }, [error, toast]);
+  }, [error, toast, updateAuthState]);
 
   const logout = useCallback(async () => {
     setError(null);

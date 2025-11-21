@@ -7,6 +7,16 @@ import type { BackupData, UserProfile } from './types';
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
+// Debug: Log das variáveis de ambiente (apenas para desenvolvimento)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('🔍 Google Drive Config:', {
+    hasApiKey: !!API_KEY,
+    hasClientId: !!CLIENT_ID,
+    apiKeyPrefix: API_KEY?.substring(0, 10) + '...',
+    clientIdPrefix: CLIENT_ID?.substring(0, 20) + '...',
+  });
+}
+
 // Constants for Google Drive API interaction.
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
@@ -444,7 +454,18 @@ export function resetGoogleDrive() {
     isGoogleDriveDisabled = false;
     initPromise = null;
     tokenClient = null;
-    console.log('Google Drive foi reabilitado. Recarregue a página para tentar conectar novamente.');
+    console.log('✅ Google Drive reabilitado. Você pode tentar fazer login novamente.');
+}
+
+/**
+ * Força a reinicialização do Google Drive
+ */
+export function forceReinitialize(callback: (isAuthorized: boolean, profile?: UserProfile, data?: BackupData | null, error?: string) => void): Promise<void> {
+    console.log('🔄 Forçando reinicialização do Google Drive...');
+    isGoogleDriveDisabled = false;
+    initPromise = null;
+    tokenClient = null;
+    return initClient(callback);
 }
 
 export function handleSignoutClick(): Promise<void> {
