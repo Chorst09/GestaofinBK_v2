@@ -15,9 +15,12 @@ import {
   GripVertical,
   CheckCircle2,
   Circle,
-  Clock,
   Hammer,
-  Pause
+  Pause,
+  DollarSign,
+  Users,
+  Package,
+  Search
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -163,6 +166,42 @@ export default function RenovationStagesPage() {
             <p className="text-muted-foreground">{renovation.name}</p>
           </div>
         </div>
+      </div>
+
+      {/* Botões de Navegação */}
+      <div className="flex flex-wrap gap-2">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => router.push(`/renovations/${renovationId}/expenses`)}
+        >
+          <DollarSign className="h-4 w-4 mr-2" />
+          Adicionar Despesa
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => router.push(`/renovations/${renovationId}/suppliers`)}
+        >
+          <Users className="h-4 w-4 mr-2" />
+          Fornecedores
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => router.push(`/renovations/${renovationId}/materials`)}
+        >
+          <Package className="h-4 w-4 mr-2" />
+          Materiais
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => router.push(`/renovations/${renovationId}/price-search`)}
+        >
+          <Search className="h-4 w-4 mr-2" />
+          Pesquisa de Preços
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
