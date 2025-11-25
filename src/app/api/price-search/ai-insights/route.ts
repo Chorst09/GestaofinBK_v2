@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { PriceSearchQuery, PriceSearchResult } from '@/lib/types';
 
+/**
+ * Endpoint dedicado para gerar insights com IA
+ * Recebe resultados de pesquisa web e gera análise inteligente
+ */
 export async function POST(request: NextRequest) {
   try {
     const { query, results, averagePrice, lowestPrice, highestPrice } = await request.json();
 
+    console.log('[AI Search] Gerando insights para:', query.productName);
+
     if (!results || results.length === 0) {
+      console.log('[AI Search] Nenhum resultado para análise');
       return NextResponse.json({
         insights: `Nenhum produto encontrado para "${query.productName}" em ${query.city}, ${query.state}.`,
       });
@@ -14,11 +21,11 @@ export async function POST(request: NextRequest) {
     // Tentar usar OpenAI se a chave estiver disponível
     const apiKey = process.env.OPENAI_API_KEY;
 
-    console.log('[AI Insights] Chave OpenAI disponível:', !!apiKey);
+    console.log('[AI Search] Chave OpenAI disponível:', !!apiKey);
 
     if (apiKey && apiKey.trim()) {
       try {
-        console.log('[AI Insights] Gerando insights com OpenAI...');
+        console.log('[AI Search] Gerando insights com OpenAI...');
         const insights = await generateAIInsightsWithOpenAI(
           query,
           results,
@@ -27,21 +34,21 @@ export async function POST(request: NextRequest) {
           highestPrice,
           apiKey
         );
-        console.log('[AI Insights] Insights gerados com sucesso');
+        console.log('[AI Search] Insights gerados com sucesso');
         return NextResponse.json({ insights });
       } catch (error) {
-        console.error('[AI Insights] Erro ao usar OpenAI:', error);
+        console.error('[AI Search] Erro ao usar OpenAI:', error);
         // Continuar com fallback local
       }
     } else {
-      console.log('[AI Insights] Chave OpenAI não configurada, usando fallback local');
+      console.log('[AI Search] Chave OpenAI não configurada, usando fallback local');
     }
 
     // Fallback para insights locais
     const insights = generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
     return NextResponse.json({ insights });
   } catch (error) {
-    console.error('[AI Insights] Erro ao gerar insights:', error);
+    console.error('[AI Search] Erro ao gerar insights:', error);
     return NextResponse.json(
       { error: 'Erro ao gerar insights' },
       { status: 500 }

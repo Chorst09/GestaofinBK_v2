@@ -65,8 +65,9 @@ export default function PriceSearchPage() {
 
     setLoading(true);
     try {
-      // Usar o novo endpoint de API
-      const response = await fetch('/api/price-search', {
+      // Passo 1: Pesquisa Web - Buscar produtos
+      console.log('[Frontend] Iniciando pesquisa web...');
+      const webResponse = await fetch('/api/price-search/web', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,12 +75,43 @@ export default function PriceSearchPage() {
         body: JSON.stringify(query),
       });
 
-      if (!response.ok) {
+      if (!webResponse.ok) {
         throw new Error('Erro ao pesquisar preços');
       }
 
-      const data = await response.json();
-      setResults(data);
+      const webData = await webResponse.json();
+      console.log('[Frontend] Pesquisa web concluída, encontrados', webData.totalResults, 'produtos');
+
+      // Passo 2: Pesquisa IA - Gerar insights
+      if (webData.totalResults > 0) {
+        console.log('[Frontend] Iniciando pesquisa com IA...');
+        try {
+          const aiResponse = await fetch('/api/price-search/ai-insights', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              results: webData.results,
+              averagePrice: webData.averagePrice,
+              lowestPrice: webData.lowestPrice,
+              highestPrice: webData.highestPrice,
+            }),
+          });
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            webData.aiInsights = aiData.insights;
+            console.log('[Frontend] Pesquisa com IA concluída');
+          }
+        } catch (error) {
+          console.warn('[Frontend] Erro ao gerar insights com IA:', error);
+          // Continuar sem insights de IA
+        }
+      }
+
+      setResults(webData);
     } catch (error: any) {
       toast({
         variant: 'destructive',
