@@ -14,8 +14,11 @@ export async function POST(request: NextRequest) {
     // Tentar usar OpenAI se a chave estiver disponível
     const apiKey = process.env.OPENAI_API_KEY;
 
-    if (apiKey) {
+    console.log('[AI Insights] Chave OpenAI disponível:', !!apiKey);
+
+    if (apiKey && apiKey.trim()) {
       try {
+        console.log('[AI Insights] Gerando insights com OpenAI...');
         const insights = await generateAIInsightsWithOpenAI(
           query,
           results,
@@ -24,18 +27,21 @@ export async function POST(request: NextRequest) {
           highestPrice,
           apiKey
         );
+        console.log('[AI Insights] Insights gerados com sucesso');
         return NextResponse.json({ insights });
       } catch (error) {
-        console.error('Erro ao usar OpenAI:', error);
+        console.error('[AI Insights] Erro ao usar OpenAI:', error);
         // Continuar com fallback local
       }
+    } else {
+      console.log('[AI Insights] Chave OpenAI não configurada, usando fallback local');
     }
 
     // Fallback para insights locais
     const insights = generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
     return NextResponse.json({ insights });
   } catch (error) {
-    console.error('Erro ao gerar insights:', error);
+    console.error('[AI Insights] Erro ao gerar insights:', error);
     return NextResponse.json(
       { error: 'Erro ao gerar insights' },
       { status: 500 }
@@ -73,6 +79,10 @@ Forneça uma análise breve (máximo 3 linhas) com:
 2. Dica de economia
 3. Recomendação de qualidade vs preço`;
 
+  console.log('[OpenAI] Enviando requisição para OpenAI...');
+  console.log('[OpenAI] Produto:', query.productName);
+  console.log('[OpenAI] Chave configurada:', apiKey.substring(0, 10) + '...');
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -96,18 +106,25 @@ Forneça uma análise breve (máximo 3 linhas) com:
     }),
   });
 
+  console.log('[OpenAI] Status da resposta:', response.status);
+
   if (!response.ok) {
     const error = await response.text();
+    console.error('[OpenAI] Erro na resposta:', error);
     throw new Error(`OpenAI API error: ${response.status} - ${error}`);
   }
 
   const data = await response.json();
+  console.log('[OpenAI] Resposta recebida:', data);
+
   const content = data.choices?.[0]?.message?.content;
 
   if (!content) {
+    console.error('[OpenAI] Conteúdo vazio na resposta');
     throw new Error('Resposta vazia da OpenAI');
   }
 
+  console.log('[OpenAI] Insights gerados com sucesso');
   return content;
 }
 
