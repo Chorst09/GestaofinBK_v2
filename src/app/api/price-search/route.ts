@@ -1,8 +1,7 @@
-"use client";
+import { NextRequest, NextResponse } from 'next/server';
+import type { PriceSearchQuery, PriceSearchResponse, PriceSearchResult } from '@/lib/types';
 
-import type { PriceSearchQuery, PriceSearchResponse, PriceSearchResult } from './types';
-
-// Mock data para demonstração - em produção, isso viria de APIs reais
+// Mock data para demonstração
 const mockPriceDatabase: PriceSearchResult[] = [
   {
     id: '1',
@@ -88,66 +87,36 @@ const mockPriceDatabase: PriceSearchResult[] = [
     rating: 3.5,
     inStock: true,
   },
+  {
+    id: '7',
+    productName: 'Telha Cerâmica',
+    brand: 'Brasital',
+    model: 'Francesa',
+    price: 2.50,
+    quality: 'medium',
+    warranty: '10 anos',
+    supplier: 'Telhas Brasil',
+    location: { state: 'SP', city: 'São Paulo' },
+    lastUpdated: new Date().toISOString(),
+    rating: 4.1,
+    inStock: true,
+  },
+  {
+    id: '8',
+    productName: 'Telha Cerâmica',
+    brand: 'Imiporcelana',
+    model: 'Portuguesa',
+    price: 3.20,
+    quality: 'high',
+    warranty: '15 anos',
+    supplier: 'Cerâmica Premium',
+    location: { state: 'SP', city: 'São Paulo' },
+    lastUpdated: new Date().toISOString(),
+    rating: 4.6,
+    inStock: true,
+  },
 ];
 
-/**
- * Pesquisa preços de produtos com base em critérios
- * Integra com IA para gerar insights inteligentes
- */
-export async function searchPrices(query: PriceSearchQuery): Promise<PriceSearchResponse> {
-  try {
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Filtrar resultados baseado na query
-    let results = mockPriceDatabase.filter(item => {
-      const matchesProduct = item.productName.toLowerCase().includes(query.productName.toLowerCase());
-      const matchesLocation = 
-        item.location.state.toLowerCase() === query.state.toLowerCase() &&
-        item.location.city.toLowerCase() === query.city.toLowerCase();
-      const matchesPrice = 
-        (!query.minPrice || item.price >= query.minPrice) &&
-        (!query.maxPrice || item.price <= query.maxPrice);
-      const matchesQuality = !query.quality || item.quality === query.quality;
-
-      return matchesProduct && matchesLocation && matchesPrice && matchesQuality;
-    });
-
-    // Se não encontrar resultados, retornar dados de outras cidades como alternativa
-    if (results.length === 0) {
-      results = mockPriceDatabase.filter(item => 
-        item.productName.toLowerCase().includes(query.productName.toLowerCase())
-      );
-    }
-
-    // Calcular estatísticas
-    const prices = results.map(r => r.price);
-    const averagePrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-    const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
-    const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
-
-    // Gerar insights com IA
-    const aiInsights = await generateAIInsights(query, results, averagePrice, lowestPrice, highestPrice);
-
-    return {
-      query,
-      results,
-      totalResults: results.length,
-      averagePrice,
-      lowestPrice,
-      highestPrice,
-      aiInsights,
-    };
-  } catch (error) {
-    console.error('Erro ao pesquisar preços:', error);
-    throw new Error('Falha ao pesquisar preços. Tente novamente.');
-  }
-}
-
-/**
- * Gera insights usando IA (OpenAI)
- * Faz uma chamada real à API de IA se disponível
- */
 async function generateAIInsights(
   query: PriceSearchQuery,
   results: PriceSearchResult[],
@@ -160,37 +129,18 @@ async function generateAIInsights(
   }
 
   try {
-    // Tentar usar IA real se a chave estiver disponível
     const apiKey = process.env.OPENAI_API_KEY;
     
-    if (apiKey) {
-      return await generateAIInsightsWithOpenAI(query, results, averagePrice, lowestPrice, highestPrice, apiKey);
+    if (!apiKey) {
+      return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
     }
-  } catch (error) {
-    console.warn('Erro ao usar IA, usando fallback:', error);
-  }
 
-  // Fallback para insights gerados localmente
-  return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
-}
+    const productSummary = results
+      .slice(0, 5)
+      .map(p => `${p.brand} ${p.model}: R$ ${p.price.toFixed(2)} (${p.quality}, ${p.rating} ⭐)`)
+      .join('\n');
 
-/**
- * Gera insights usando OpenAI API
- */
-async function generateAIInsightsWithOpenAI(
-  query: PriceSearchQuery,
-  results: PriceSearchResult[],
-  averagePrice: number,
-  lowestPrice: number,
-  highestPrice: number,
-  apiKey: string
-): Promise<string> {
-  const productSummary = results
-    .slice(0, 5)
-    .map(p => `${p.brand} ${p.model}: R$ ${p.price.toFixed(2)} (${p.quality}, ${p.rating} ⭐)`)
-    .join('\n');
-
-  const prompt = `Você é um especialista em compras de materiais de construção. Analise os seguintes dados de preços e forneça uma recomendação concisa e prática em português:
+    const prompt = `Você é um especialista em compras de materiais de construção. Analise os seguintes dados de preços e forneça uma recomendação concisa e prática em português:
 
 Produto procurado: ${query.productName}
 Localização: ${query.city}, ${query.state}
@@ -207,7 +157,6 @@ Forneça uma análise breve (máximo 3 linhas) com:
 2. Dica de economia
 3. Recomendação de qualidade vs preço`;
 
-  try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -232,20 +181,18 @@ Forneça uma análise breve (máximo 3 linhas) com:
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      console.error('OpenAI API error:', response.statusText);
+      return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
     }
 
     const data = await response.json();
     return data.choices[0]?.message?.content || generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
   } catch (error) {
-    console.error('Erro ao chamar OpenAI:', error);
+    console.error('Erro ao gerar insights com IA:', error);
     return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
   }
 }
 
-/**
- * Gera insights localmente sem IA
- */
 function generateLocalInsights(
   query: PriceSearchQuery,
   results: PriceSearchResult[],
@@ -276,33 +223,64 @@ function generateLocalInsights(
   return insight;
 }
 
-/**
- * Obtém lista de estados brasileiros
- */
-export function getBrazilianStates(): string[] {
-  return [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-  ];
-}
+export async function POST(request: NextRequest) {
+  try {
+    const query: PriceSearchQuery = await request.json();
 
-/**
- * Obtém lista de cidades por estado (simulado)
- */
-export function getCitiesByState(state: string): string[] {
-  const citiesByState: Record<string, string[]> = {
-    'SP': ['São Paulo', 'Campinas', 'Santos', 'Sorocaba', 'Ribeirão Preto'],
-    'RJ': ['Rio de Janeiro', 'Niterói', 'Duque de Caxias', 'Nova Iguaçu'],
-    'MG': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora'],
-    'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista'],
-    'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas'],
-    'PR': ['Curitiba', 'Londrina', 'Maringá'],
-    'PE': ['Recife', 'Jaboatão dos Guararapes', 'Olinda'],
-    'CE': ['Fortaleza', 'Caucaia', 'Maracanaú'],
-    'PA': ['Belém', 'Ananindeua', 'Santarém'],
-    'SC': ['Florianópolis', 'Joinville', 'Blumenau'],
-  };
+    // Validar query
+    if (!query.productName || !query.state || !query.city) {
+      return NextResponse.json(
+        { error: 'Parâmetros inválidos' },
+        { status: 400 }
+      );
+    }
 
-  return citiesByState[state] || [];
+    // Filtrar resultados
+    let results = mockPriceDatabase.filter(item => {
+      const matchesProduct = item.productName.toLowerCase().includes(query.productName.toLowerCase());
+      const matchesLocation = 
+        item.location.state.toLowerCase() === query.state.toLowerCase() &&
+        item.location.city.toLowerCase() === query.city.toLowerCase();
+      const matchesPrice = 
+        (!query.minPrice || item.price >= query.minPrice) &&
+        (!query.maxPrice || item.price <= query.maxPrice);
+      const matchesQuality = !query.quality || item.quality === query.quality;
+
+      return matchesProduct && matchesLocation && matchesPrice && matchesQuality;
+    });
+
+    // Se não encontrar, buscar em outras cidades
+    if (results.length === 0) {
+      results = mockPriceDatabase.filter(item => 
+        item.productName.toLowerCase().includes(query.productName.toLowerCase())
+      );
+    }
+
+    // Calcular estatísticas
+    const prices = results.map(r => r.price);
+    const averagePrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+    const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
+
+    // Gerar insights com IA
+    const aiInsights = await generateAIInsights(query, results, averagePrice, lowestPrice, highestPrice);
+
+    const response: PriceSearchResponse = {
+      query,
+      results,
+      totalResults: results.length,
+      averagePrice,
+      lowestPrice,
+      highestPrice,
+      aiInsights,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Erro na pesquisa de preços:', error);
+    return NextResponse.json(
+      { error: 'Erro ao pesquisar preços' },
+      { status: 500 }
+    );
+  }
 }

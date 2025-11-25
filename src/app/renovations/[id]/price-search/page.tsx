@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Search, Loader2, TrendingDown, Star, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { searchPrices, getBrazilianStates, getCitiesByState } from '@/lib/price-search-service';
+import { getBrazilianStates, getCitiesByState } from '@/lib/price-search-service';
 import type { PriceSearchQuery, PriceSearchResponse } from '@/lib/types';
 
 export default function PriceSearchPage() {
@@ -65,13 +65,26 @@ export default function PriceSearchPage() {
 
     setLoading(true);
     try {
-      const response = await searchPrices(query);
-      setResults(response);
+      // Usar o novo endpoint de API
+      const response = await fetch('/api/price-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(query),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao pesquisar preços');
+      }
+
+      const data = await response.json();
+      setResults(data);
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Erro na pesquisa',
-        description: error.message,
+        description: error.message || 'Falha ao pesquisar preços. Tente novamente.',
       });
     } finally {
       setLoading(false);
