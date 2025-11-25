@@ -24,7 +24,8 @@ import {
   List,
   Users,
   Package,
-  Shield
+  Shield,
+  Search
 } from 'lucide-react';
 import { BudgetProgressBar } from '@/components/renovations/budget-progress-bar';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -122,9 +123,15 @@ export default function RenovationDetailPage() {
             <p className="text-muted-foreground mt-2">{renovation.description}</p>
           )}
         </div>
-        <Button onClick={() => router.push(`/renovations/${renovationId}/edit`)}>
-          Editar Reforma
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push(`/renovations/${renovationId}/price-search`)} variant="outline">
+            <Search className="mr-2 h-4 w-4" />
+            Pesquisa de Preços
+          </Button>
+          <Button onClick={() => router.push(`/renovations/${renovationId}/edit`)}>
+            Editar Reforma
+          </Button>
+        </div>
       </div>
 
       {/* Resumo Financeiro */}
