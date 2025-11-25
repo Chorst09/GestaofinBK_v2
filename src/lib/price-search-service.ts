@@ -159,8 +159,31 @@ async function generateAIInsights(
     return `Nenhum produto encontrado para "${query.productName}" em ${query.city}, ${query.state}. Tente expandir sua busca ou verificar a disponibilidade em outras cidades.`;
   }
 
+  try {
+    // Chamar o endpoint de API que processa a IA no servidor
+    const response = await fetch('/api/price-search/ai-insights', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+        results,
+        averagePrice,
+        lowestPrice,
+        highestPrice,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.insights || generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
+    }
+  } catch (error) {
+    console.warn('Erro ao gerar insights com IA, usando fallback:', error);
+  }
+
   // Fallback para insights gerados localmente
-  // A IA é processada no servidor via API route
   return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
 }
 
