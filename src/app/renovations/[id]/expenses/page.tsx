@@ -29,7 +29,6 @@ const categoryLabels: Record<RenovationExpenseCategory, string> = {
   finishing: 'Acabamento',
   labor: 'Mão de Obra',
   materials: 'Materiais',
-  permits: 'Licenças',
   other: 'Outros',
 };
 
