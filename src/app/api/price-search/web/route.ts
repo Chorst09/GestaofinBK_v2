@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { PriceSearchQuery, PriceSearchResponse, PriceSearchResult } from '@/lib/types';
 
-// Mock data para demonstração - em produção, isso viria de APIs reais
+// Mock data para demonstração
 const mockPriceDatabase: PriceSearchResult[] = [
   {
     id: '1',
@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
 
     console.log('[Web Search] Pesquisando produtos:', query.productName);
 
-    // Validar query
     if (!query.productName || !query.state || !query.city) {
       return NextResponse.json(
         { error: 'Parâmetros inválidos' },
@@ -131,7 +130,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Filtrar resultados
     let results = mockPriceDatabase.filter(item => {
       const matchesProduct = item.productName.toLowerCase().includes(query.productName.toLowerCase());
       const matchesLocation = 
@@ -145,7 +143,6 @@ export async function POST(request: NextRequest) {
       return matchesProduct && matchesLocation && matchesPrice && matchesQuality;
     });
 
-    // Se não encontrar, buscar em outras cidades
     if (results.length === 0) {
       console.log('[Web Search] Nenhum resultado na cidade, buscando em outras cidades...');
       results = mockPriceDatabase.filter(item => 
@@ -153,7 +150,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calcular estatísticas
     const prices = results.map(r => r.price);
     const averagePrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
     const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
@@ -168,7 +164,7 @@ export async function POST(request: NextRequest) {
       averagePrice,
       lowestPrice,
       highestPrice,
-      aiInsights: '', // Insights vazios, serão preenchidos pela pesquisa de IA
+      aiInsights: '',
     };
 
     return NextResponse.json(response);
