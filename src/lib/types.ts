@@ -438,3 +438,43 @@ export interface DataBackupContextType {
 }
 
     
+// --
+-- Price Search Types (Pesquisa de Preços) ----
+
+export interface PriceSearchResult {
+  id: string;
+  productName: string;
+  brand: string;
+  model: string;
+  price: number;
+  quality: 'low' | 'medium' | 'high' | 'premium';
+  warranty: string; // Ex: "12 meses", "2 anos"
+  supplier: string;
+  location: {
+    state: string;
+    city: string;
+  };
+  url?: string;
+  lastUpdated: string;
+  rating?: number; // 1-5 stars
+  inStock: boolean;
+}
+
+export interface PriceSearchQuery {
+  productName: string;
+  state: string;
+  city: string;
+  maxPrice?: number;
+  minPrice?: number;
+  quality?: 'low' | 'medium' | 'high' | 'premium';
+}
+
+export interface PriceSearchResponse {
+  query: PriceSearchQuery;
+  results: PriceSearchResult[];
+  totalResults: number;
+  averagePrice: number;
+  lowestPrice: number;
+  highestPrice: number;
+  aiInsights?: string; // Insights gerados por IA sobre os preços
+}
