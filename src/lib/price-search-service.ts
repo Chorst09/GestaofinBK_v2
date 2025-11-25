@@ -146,7 +146,7 @@ export async function searchPrices(query: PriceSearchQuery): Promise<PriceSearch
 
 /**
  * Gera insights usando IA (OpenAI)
- * Faz uma chamada real à API de IA se disponível
+ * Chamada feita através do endpoint de API do servidor
  */
 async function generateAIInsights(
   query: PriceSearchQuery,
@@ -159,88 +159,9 @@ async function generateAIInsights(
     return `Nenhum produto encontrado para "${query.productName}" em ${query.city}, ${query.state}. Tente expandir sua busca ou verificar a disponibilidade em outras cidades.`;
   }
 
-  try {
-    // Tentar usar IA real se a chave estiver disponível
-    const apiKey = process.env.OPENAI_API_KEY;
-    
-    if (apiKey) {
-      return await generateAIInsightsWithOpenAI(query, results, averagePrice, lowestPrice, highestPrice, apiKey);
-    }
-  } catch (error) {
-    console.warn('Erro ao usar IA, usando fallback:', error);
-  }
-
   // Fallback para insights gerados localmente
+  // A IA é processada no servidor via API route
   return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
-}
-
-/**
- * Gera insights usando OpenAI API
- */
-async function generateAIInsightsWithOpenAI(
-  query: PriceSearchQuery,
-  results: PriceSearchResult[],
-  averagePrice: number,
-  lowestPrice: number,
-  highestPrice: number,
-  apiKey: string
-): Promise<string> {
-  const productSummary = results
-    .slice(0, 5)
-    .map(p => `${p.brand} ${p.model}: R$ ${p.price.toFixed(2)} (${p.quality}, ${p.rating} ⭐)`)
-    .join('\n');
-
-  const prompt = `Você é um especialista em compras de materiais de construção. Analise os seguintes dados de preços e forneça uma recomendação concisa e prática em português:
-
-Produto procurado: ${query.productName}
-Localização: ${query.city}, ${query.state}
-Preço médio: R$ ${averagePrice.toFixed(2)}
-Preço mínimo: R$ ${lowestPrice.toFixed(2)}
-Preço máximo: R$ ${highestPrice.toFixed(2)}
-Total de opções: ${results.length}
-
-Produtos encontrados:
-${productSummary}
-
-Forneça uma análise breve (máximo 3 linhas) com:
-1. Melhor custo-benefício
-2. Dica de economia
-3. Recomendação de qualidade vs preço`;
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'Você é um assistente especializado em análise de preços de materiais de construção. Forneça recomendações práticas e diretas.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 200,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
-  } catch (error) {
-    console.error('Erro ao chamar OpenAI:', error);
-    return generateLocalInsights(query, results, averagePrice, lowestPrice, highestPrice);
-  }
 }
 
 /**
