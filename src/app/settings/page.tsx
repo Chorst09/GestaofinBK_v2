@@ -26,6 +26,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { GoogleOAuthDiagnostic } from '@/components/settings/google-oauth-diagnostic';
+import { BackupHistoryDialog } from '@/components/settings/backup-history-dialog';
+import { GoogleDrivePermissionHelp } from '@/components/settings/google-drive-permission-help';
 
 export default function SettingsPage() {
   const {
@@ -263,7 +265,9 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {error && (
+          <GoogleDrivePermissionHelp error={error} />
+          
+          {error && !error.includes('PERMISSION_DENIED') && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Ocorreu um Erro</AlertTitle>

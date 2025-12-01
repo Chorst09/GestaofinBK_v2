@@ -65,9 +65,9 @@ function handleDriveError(e: any, baseMessage: string): never {
     const messageToCheck = googleError?.message || details;
 
     // Check for specific, known error messages to provide user-friendly feedback
-    if (statusToCheck === 'PERMISSION_DENIED' || messageToCheck.includes('insufficient scopes') || messageToCheck.includes('insufficient permissions')) {
+    if (statusToCheck === 'PERMISSION_DENIED' || messageToCheck.includes('insufficient scopes') || messageToCheck.includes('insufficient permissions') || messageToCheck.includes('are blocked')) {
         // This is the key change: throw a predictable error message
-        throw new Error(`PERMISSION_DENIED: O aplicativo não tem o acesso necessário ao Google Drive. Por favor, clique no botão "Entrar com Google" novamente para aprovar as permissões. Detalhes: ${details}`);
+        throw new Error(`PERMISSION_DENIED: A Google Drive API não está habilitada ou você não concedeu as permissões necessárias. SOLUÇÃO: 1) Habilite a Google Drive API no Google Cloud Console (projeto GestaoFinBK). 2) Saia e faça login novamente, aceitando TODAS as permissões. Detalhes: ${details}`);
     }
 
     if (messageToCheck.includes("API has not been used in project") || messageToCheck.includes("Enable the API")) {
@@ -251,7 +251,7 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
             } catch (scriptError) {
                 // Se falhar ao carregar os scripts, desabilitar silenciosamente
                 isGoogleDriveDisabled = true;
-                onAuthChangeCallback(false, undefined, undefined, null);
+                onAuthChangeCallback(false, undefined, undefined, undefined);
                 initPromise = null;
                 return;
             }
@@ -376,14 +376,14 @@ export function initClient(callback: (isAuthorized: boolean, profile?: UserProfi
                 errorMsg.includes('timeout')) {
                 
                 isGoogleDriveDisabled = true; // Desabilitar para não tentar novamente
-                onAuthChangeCallback(false, undefined, undefined, null); // Sem erro para o usuário
+                onAuthChangeCallback(false, undefined, undefined, undefined); // Sem erro para o usuário
                 initPromise = null;
                 return; // Sair silenciosamente
             }
             
             // Para outros erros, não mostrar no console, apenas desabilitar
             isGoogleDriveDisabled = true;
-            onAuthChangeCallback(false, undefined, undefined, null);
+            onAuthChangeCallback(false, undefined, undefined, undefined);
             initPromise = null;
         }
     })();
