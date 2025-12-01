@@ -99,13 +99,13 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     setMaterials(backupData.materials || []);
   }, [setTransactions, setBankAccounts, setCreditCards, setForecastItems, setVehicles, setVehicleExpenses, setScheduledMaintenances, setFinancialGoals, setGoalContributions, setCustomCategories, setFixedIncomeAssets, setVariableIncomeAssets, setTravelEvents, setRenovations, setRenovationExpenses, setSuppliers, setMaterials]);
 
-  const saveToDrive = useCallback(async (options?: { showSuccessToast?: boolean }) => {
+  const saveToDrive = useCallback(async (options?: { showSuccessToast?: boolean; createNewVersion?: boolean }) => {
     if (!isLoggedIn) return;
     setIsSaving(true);
     setError(null);
     try {
       const data = getLatestBackupData();
-      await GoogleDriveService.saveToDrive(data);
+      await GoogleDriveService.saveToDrive(data, options?.createNewVersion || false);
       setLastBackupDate(new Date());
       if (options?.showSuccessToast) {
         toast({ title: "Backup Concluído", description: "Seus dados foram salvos com sucesso no Google Drive." });
@@ -120,27 +120,33 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     }
   }, [isLoggedIn, getLatestBackupData, toast]);
 
+  // Backup diário automático
   useEffect(() => {
-    if (!isMountedRef.current) {
-        isMountedRef.current = true;
-        return;
-    }
     if (!isLoggedIn || !isDataLoaded) return;
     
-    if (backupTimerRef.current) {
-        clearTimeout(backupTimerRef.current);
-    }
-    
-    backupTimerRef.current = setTimeout(() => {
-        saveToDrive({ showSuccessToast: false });
-    }, 2500); // Debounce backups by 2.5 seconds
-
-    return () => {
-        if (backupTimerRef.current) {
-            clearTimeout(backupTimerRef.current);
+    const checkAndCreateDailyBackup = async () => {
+      const lastBackupKey = 'lastDailyBackupDate';
+      const lastBackup = localStorage.getItem(lastBackupKey);
+      const today = new Date().toDateString();
+      
+      // Se não há backup hoje, criar um
+      if (lastBackup !== today) {
+        try {
+          await saveToDrive({ showSuccessToast: false, createNewVersion: true });
+          localStorage.setItem(lastBackupKey, today);
+          console.log('✅ Backup diário automático criado');
+        } catch (error) {
+          console.error('Erro ao criar backup diário:', error);
         }
+      }
     };
-  }, [transactions, bankAccounts, creditCards, forecastItems, vehicles, vehicleExpenses, scheduledMaintenances, financialGoals, goalContributions, customCategories, fixedIncomeAssets, variableIncomeAssets, isLoggedIn, saveToDrive, isDataLoaded]);
+    
+    // Verificar ao montar e a cada hora
+    checkAndCreateDailyBackup();
+    const interval = setInterval(checkAndCreateDailyBackup, 60 * 60 * 1000); // A cada 1 hora
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn, isDataLoaded, saveToDrive]);
 
   const updateAuthState = useCallback((isAuthorized: boolean, profile?: UserProfile, data?: BackupData | null, error?: string) => {
     const isTransitioningToLoggedIn = !isLoggedIn && isAuthorized;
@@ -302,6 +308,45 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     }
   }, [isLoggedIn, restoreAllData, toast]);
 
+  const listBackups = useCallback(async () => {
+    if (!isLoggedIn) {
+      toast({ variant: 'destructive', title: 'Não conectado', description: 'Faça login para listar backups.' });
+      return [];
+    }
+    try {
+      return await GoogleDriveService.listBackupFiles();
+    } catch (e: any) {
+      console.error("List backups failed:", e);
+      toast({ variant: 'destructive', title: 'Erro ao Listar Backups', description: e.message });
+      return [];
+    }
+  }, [isLoggedIn, toast]);
+
+  const restoreFromBackupById = useCallback(async (fileId: string) => {
+    if (!isLoggedIn) {
+      toast({ variant: 'destructive', title: 'Não conectado', description: 'Faça login para restaurar um backup.' });
+      return;
+    }
+    setIsRestoring(true);
+    setError(null);
+    try {
+      const data = await GoogleDriveService.restoreFromDriveById(fileId);
+      if (data) {
+        restoreAllData(data);
+        setLastBackupDate(new Date());
+        toast({ title: 'Sucesso', description: 'Seus dados foram restaurados do Google Drive.' });
+      } else {
+        toast({ title: 'Backup não encontrado', description: 'Não foi possível carregar este backup.' });
+      }
+    } catch (e: any) {
+      console.error("Restore failed:", e);
+      setError(e.message || "Falha ao restaurar o backup.");
+      toast({ variant: 'destructive', title: 'Erro de Restauração', description: e.message });
+    } finally {
+      setIsRestoring(false);
+    }
+  }, [isLoggedIn, restoreAllData, toast]);
+
   const value: DataBackupContextType = {
     isLoggedIn,
     isInitializing,
@@ -312,6 +357,8 @@ export function DataBackupProvider({ children }: { children: React.ReactNode }) 
     logout,
     restoreFromBackup,
     saveToDrive,
+    listBackups,
+    restoreFromBackupById,
     userProfile,
     lastBackupDate,
     error,

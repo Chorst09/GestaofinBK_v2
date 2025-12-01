@@ -523,14 +523,97 @@ export function revokeCurrentToken(): Promise<void> {
     });
 }
 
-export async function saveToDrive(data: BackupData) {
+export async function saveToDrive(data: BackupData, createNewVersion: boolean = false) {
     const content = JSON.stringify(data);
-    const fileId = await getFileId();
+    
+    if (createNewVersion) {
+        // Criar novo arquivo com timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const fileName = `financas-zen-backup-${timestamp}.json`;
+        
+        const gapi = (window as any).gapi;
+        if (!gapi.client?.drive) {
+            throw new Error("O cliente da API do Google Drive não está carregado.");
+        }
+        try {
+            const fileMetadata = {
+                name: fileName,
+                parents: ['appDataFolder']
+            };
+            const file = await gapi.client.drive.files.create({
+                resource: fileMetadata,
+                fields: 'id'
+            });
 
-    if (fileId) {
-        await updateFile(fileId, content);
+            const fileId = file.result.id;
+            if (!fileId) {
+                throw new Error("A criação do arquivo não retornou um ID.");
+            }
+
+            await updateFile(fileId, content);
+        } catch (e: any) {
+            handleDriveError(e, "Não foi possível criar o arquivo de backup versionado");
+        }
     } else {
-        await createFile(content);
+        // Atualizar arquivo principal (legado)
+        const fileId = await getFileId();
+        if (fileId) {
+            await updateFile(fileId, content);
+        } else {
+            await createFile(content);
+        }
+    }
+}
+
+export interface BackupFileInfo {
+    id: string;
+    name: string;
+    createdTime: string;
+    modifiedTime: string;
+    size: string;
+}
+
+export async function listBackupFiles(): Promise<BackupFileInfo[]> {
+    const gapi = (window as any).gapi;
+    if (!gapi.client?.drive) {
+        throw new Error("O cliente da API do Google Drive não está carregado.");
+    }
+    try {
+        const response = await gapi.client.drive.files.list({
+            spaces: 'appDataFolder',
+            fields: 'files(id, name, createdTime, modifiedTime, size)',
+            pageSize: 100,
+            orderBy: 'modifiedTime desc'
+        });
+        
+        const files = response.result.files || [];
+        return files
+            .filter((f: any) => f.name.startsWith('financas-zen-backup') || f.name === 'financas-zen-backup.json')
+            .map((f: any) => ({
+                id: f.id,
+                name: f.name,
+                createdTime: f.createdTime,
+                modifiedTime: f.modifiedTime,
+                size: f.size
+            }));
+    } catch (e: any) {
+        handleDriveError(e, "Não foi possível listar backups no Google Drive");
+    }
+}
+
+export async function restoreFromDriveById(fileId: string): Promise<BackupData | null> {
+    const gapi = (window as any).gapi;
+    if (!gapi.client?.drive) {
+        throw new Error("O cliente da API do Google Drive não está carregado.");
+    }
+    try {
+        const response = await gapi.client.drive.files.get({
+            fileId: fileId,
+            alt: 'media'
+        });
+        return response.result as BackupData;
+    } catch (e: any) {
+       handleDriveError(e, "Não foi possível carregar o arquivo de backup");
     }
 }
 

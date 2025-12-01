@@ -247,12 +247,12 @@ export default function SettingsPage() {
                 {isSaving ? (
                     <>
                         <Upload className="mr-2 h-4 w-4 animate-pulse text-primary" />
-                        <span>Salvando alterações no Google Drive...</span>
+                        <span>Criando backup...</span>
                     </>
                 ) : lastBackupDate ? (
                     `Último backup: ${lastBackupDate.toLocaleString()}`
                 ) : (
-                    "Nenhum backup realizado ainda. As alterações serão salvas automaticamente."
+                    "Nenhum backup criado ainda. Crie um backup manual ou aguarde o backup diário automático."
                 )}
                </div>
             </div>
@@ -276,40 +276,32 @@ export default function SettingsPage() {
           )}
 
           {hasGoogleConfig && (
-              <div className="pt-6 flex flex-wrap gap-4">
+              <div className="pt-6 space-y-4">
+                <div className="flex flex-wrap gap-4">
                   <Button onClick={handleManualBackup} disabled={!isLoggedIn || isSaving}>
                     {isSaving ? (
                         <>
                             <Loader className="mr-2 h-4 w-4 animate-spin" />
-                            Salvando...
+                            Criando...
                         </>
                     ) : (
                          <>
                             <Save className="mr-2 h-4 w-4" />
-                            Fazer Backup Manual
+                            Criar Backup Manual
                         </>
                     )}
                   </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" disabled={!isLoggedIn || isRestoring}>
-                        <Download className="mr-2 h-4 w-4" /> 
-                        {isRestoring ? 'Restaurando...' : 'Restaurar do Google Drive'}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Restauração</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja restaurar o backup? Todos os dados atuais salvos localmente (neste navegador) serão permanentemente substituídos pelos dados do seu último backup no Google Drive.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleRestore}>Sim, restaurar backup</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <BackupHistoryDialog />
+                </div>
+                <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2">
+                  <p className="font-medium">ℹ️ Como funciona o backup:</p>
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                    <li><strong>Backup Diário Automático:</strong> Um backup é criado automaticamente uma vez por dia quando você usa o aplicativo</li>
+                    <li><strong>Backup Manual:</strong> Você pode criar backups adicionais a qualquer momento clicando no botão acima</li>
+                    <li><strong>Histórico:</strong> Todos os backups ficam salvos e você pode escolher qual restaurar</li>
+                    <li><strong>Sem Sobrescrita:</strong> Cada backup é um arquivo separado, nada é perdido</li>
+                  </ul>
+                </div>
               </div>
           )}
         </CardContent>

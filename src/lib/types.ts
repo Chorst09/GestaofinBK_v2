@@ -401,6 +401,14 @@ export interface BackupData {
     cashFlowEntries: CashFlowEntry[];
 }
 
+export interface BackupFileInfo {
+    id: string;
+    name: string;
+    createdTime: string;
+    modifiedTime: string;
+    size: string;
+}
+
 // Define the shape of the context value
 export interface DataBackupContextType {
   isLoggedIn: boolean;
@@ -411,7 +419,9 @@ export interface DataBackupContextType {
   login: (forceConsent?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   restoreFromBackup: () => Promise<void>;
-  saveToDrive: (options?: { showSuccessToast?: boolean }) => Promise<void>;
+  saveToDrive: (options?: { showSuccessToast?: boolean; createNewVersion?: boolean }) => Promise<void>;
+  listBackups: () => Promise<BackupFileInfo[]>;
+  restoreFromBackupById: (fileId: string) => Promise<void>;
   userProfile: UserProfile | null;
   lastBackupDate: Date | null;
   error: string | null;
@@ -437,9 +447,7 @@ export interface DataBackupContextType {
   };
 }
 
-    
-// --
--- Price Search Types (Pesquisa de Preços) ----
+// ---- Price Search Types (Pesquisa de Preços) ----
 
 export interface PriceSearchResult {
   id: string;
