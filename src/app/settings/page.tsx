@@ -128,6 +128,41 @@ export default function SettingsPage() {
     reader.readAsText(importFile);
   };
 
+  const handleClearAllData = () => {
+    try {
+      // Limpar todos os dados usando as funções do contexto
+      restoreFunctions.setTransactions([]);
+      restoreFunctions.setBankAccounts([]);
+      restoreFunctions.setCreditCards([]);
+      restoreFunctions.setForecastItems([]);
+      restoreFunctions.setVehicles([]);
+      restoreFunctions.setVehicleExpenses([]);
+      restoreFunctions.setScheduledMaintenances([]);
+      restoreFunctions.setFinancialGoals([]);
+      restoreFunctions.setGoalContributions([]);
+      restoreFunctions.setCustomCategories([]);
+      restoreFunctions.setFixedIncomeAssets([]);
+      restoreFunctions.setVariableIncomeAssets([]);
+      restoreFunctions.setTravelEvents([]);
+      restoreFunctions.setRenovations([]);
+      restoreFunctions.setRenovationExpenses([]);
+      restoreFunctions.setSuppliers([]);
+      restoreFunctions.setMaterials([]);
+      
+      toast({ 
+        title: "Dados Limpos", 
+        description: "Todos os dados foram removidos com sucesso. O aplicativo foi resetado para o estado inicial." 
+      });
+    } catch (error) {
+      console.error("Clear data failed:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao Limpar Dados", 
+        description: "Ocorreu um erro ao tentar limpar os dados." 
+      });
+    }
+  };
+
   const handleManualBackup = () => {
     saveToDrive({ showSuccessToast: true });
   };
@@ -364,6 +399,65 @@ export default function SettingsPage() {
                         </AlertDialogContent>
                     </AlertDialog>
                 </div>
+            </div>
+            
+            <Separator />
+            
+            <div>
+                <Label htmlFor="clear-data-button">Limpar Todos os Dados</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                    Remove permanentemente todos os dados do aplicativo (transações, contas, cartões, etc.). Esta ação não pode ser desfeita.
+                </p>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button id="clear-data-button" variant="destructive" disabled={!isDataLoaded}>
+                            {!isDataLoaded ? (
+                                <>
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" /> Carregando...
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="mr-2 h-4 w-4" /> Limpar Todos os Dados
+                                </>
+                            )}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle className="text-destructive">⚠️ Confirmar Limpeza de Dados</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                <div className="space-y-3">
+                                    <p>
+                                        <strong>ATENÇÃO:</strong> Esta ação irá remover permanentemente TODOS os seus dados:
+                                    </p>
+                                    <ul className="list-disc list-inside space-y-1 text-sm">
+                                        <li>Todas as transações</li>
+                                        <li>Contas bancárias e cartões de crédito</li>
+                                        <li>Veículos e despesas</li>
+                                        <li>Metas financeiras e investimentos</li>
+                                        <li>Viagens e reformas</li>
+                                        <li>Categorias personalizadas</li>
+                                        <li>Todos os outros dados</li>
+                                    </ul>
+                                    <div className="bg-destructive/10 p-3 rounded-md">
+                                        <p className="text-sm font-medium text-destructive">
+                                            Esta ação NÃO PODE ser desfeita. Certifique-se de ter um backup antes de continuar.
+                                        </p>
+                                    </div>
+                                </div>
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={handleClearAllData}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                                Sim, limpar todos os dados
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </CardContent>
       </Card>
