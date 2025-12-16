@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, LayoutDashboard, List, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, LineChart, Plane, Hammer } from 'lucide-react';
+import { Home, LayoutDashboard, List, Target, Package2, Settings, CreditCard as CreditCardIcon, Landmark as BankIcon, Car, AreaChart, BarChart3, ClipboardCheck, LineChart, Plane, Hammer, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SimpleThemeToggle } from '@/components/theme/theme-toggle';
 
@@ -32,6 +32,7 @@ const navItems = [
   { href: '/travel', label: 'Viagens e Lazer', icon: Plane },
   { href: '/credit-cards', label: 'Cartões de Crédito', icon: CreditCardIcon },
   { href: '/bank-accounts', label: 'Contas Bancárias', icon: BankIcon },
+  { href: '/interest-calculator', label: 'Cálculos de Juros', icon: Calculator },
   { href: '/vehicles', label: 'Veículos', icon: Car },
 ];
 
