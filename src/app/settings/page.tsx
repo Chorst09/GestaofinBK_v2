@@ -7,7 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useDataBackup } from "@/hooks/useDataBackup";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, LogIn, LogOut, Loader, Download, Upload, Save, Tags } from "lucide-react";
+import { AlertCircle, LogIn, LogOut, Loader, Download, Upload, Save, Tags, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -69,15 +75,111 @@ export default function SettingsPage() {
       const link = document.createElement("a");
       link.href = url;
       const date = new Date().toISOString().split('T')[0];
-      link.download = `financas-zen-backup-${date}.json`;
+      link.download = `financas-zen-backup-completo-${date}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast({ title: "Exportação Concluída", description: "Seu arquivo de backup foi baixado." });
+      toast({ title: "Exportação Concluída", description: "Seu arquivo de backup completo foi baixado." });
     } catch (e) {
       console.error("Export failed:", e);
       toast({ variant: "destructive", title: "Erro na Exportação", description: "Não foi possível gerar o arquivo de backup." });
+    }
+  };
+
+  const handleSelectiveExport = (dataType: string) => {
+    try {
+      const fullBackupData = getLatestBackupData();
+      let data: any = {};
+      let fileName = '';
+      let description = '';
+
+      switch (dataType) {
+        case 'transactions':
+          data = { transactions: fullBackupData.transactions };
+          fileName = 'transacoes';
+          description = 'transações';
+          break;
+        case 'forecasts':
+          data = { forecastItems: fullBackupData.forecastItems };
+          fileName = 'previsoes';
+          description = 'previsões';
+          break;
+        case 'vehicles':
+          data = { 
+            vehicles: fullBackupData.vehicles, 
+            vehicleExpenses: fullBackupData.vehicleExpenses, 
+            scheduledMaintenances: fullBackupData.scheduledMaintenances 
+          };
+          fileName = 'veiculos';
+          description = 'dados de veículos';
+          break;
+        case 'accounts':
+          data = { 
+            bankAccounts: fullBackupData.bankAccounts, 
+            creditCards: fullBackupData.creditCards 
+          };
+          fileName = 'contas';
+          description = 'contas bancárias e cartões';
+          break;
+        case 'investments':
+          data = { 
+            fixedIncomeAssets: fullBackupData.fixedIncomeAssets, 
+            variableIncomeAssets: fullBackupData.variableIncomeAssets 
+          };
+          fileName = 'investimentos';
+          description = 'investimentos';
+          break;
+        case 'goals':
+          data = { 
+            financialGoals: fullBackupData.financialGoals, 
+            goalContributions: fullBackupData.goalContributions 
+          };
+          fileName = 'metas';
+          description = 'metas financeiras';
+          break;
+        case 'travel':
+          data = { travelEvents: fullBackupData.travelEvents };
+          fileName = 'viagens';
+          description = 'dados de viagens';
+          break;
+        case 'renovations':
+          data = { 
+            renovations: fullBackupData.renovations, 
+            renovationExpenses: fullBackupData.renovationExpenses, 
+            suppliers: fullBackupData.suppliers, 
+            materials: fullBackupData.materials 
+          };
+          fileName = 'reformas';
+          description = 'dados de reformas';
+          break;
+        default:
+          throw new Error('Tipo de dados não reconhecido');
+      }
+
+      const dataStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      link.download = `financas-zen-${fileName}-${date}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({ 
+        title: "Exportação Concluída", 
+        description: `Backup de ${description} foi baixado com sucesso.` 
+      });
+    } catch (e) {
+      console.error("Selective export failed:", e);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro na Exportação", 
+        description: "Não foi possível gerar o arquivo de backup seletivo." 
+      });
     }
   };
   
@@ -351,21 +453,59 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
             <div>
-                <Label htmlFor="export-button">Exportar Dados</Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                    Salve uma cópia de todos os seus dados em um arquivo JSON.
+                <Label htmlFor="export-buttons">Exportar Dados</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                    Escolha quais dados você deseja exportar para um arquivo JSON.
                 </p>
-                <Button id="export-button" onClick={handleExport} disabled={!isDataLoaded}>
-                    {!isDataLoaded ? (
-                        <>
-                            <Loader className="mr-2 h-4 w-4 animate-spin" /> Carregando Dados...
-                        </>
-                    ) : (
-                        <>
-                            <Download className="mr-2 h-4 w-4" /> Exportar para Arquivo
-                        </>
-                    )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Button id="export-button" onClick={handleExport} disabled={!isDataLoaded}>
+                        {!isDataLoaded ? (
+                            <>
+                                <Loader className="mr-2 h-4 w-4 animate-spin" /> Carregando...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="mr-2 h-4 w-4" /> Backup Completo
+                            </>
+                        )}
+                    </Button>
+                    
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" disabled={!isDataLoaded}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Backup Seletivo
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('transactions')}>
+                                💰 Transações
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('forecasts')}>
+                                📊 Previsões
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('vehicles')}>
+                                🚗 Veículos e Manutenções
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('accounts')}>
+                                🏦 Contas e Cartões
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('investments')}>
+                                📈 Investimentos
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('goals')}>
+                                🎯 Metas Financeiras
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('travel')}>
+                                ✈️ Viagens
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSelectiveExport('renovations')}>
+                                🏠 Reformas e Materiais
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
             
             <Separator />
