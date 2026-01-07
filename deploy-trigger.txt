@@ -1,0 +1,10 @@
+Deploy trigger - 2025-12-12 18:30:00
+Commit: 322a4d4 - fix: corrige exportação CSV de despesas de veículos com dados completos
+
+Funcionalidades atualizadas:
+- ✅ Exportação CSV corrigida com todos os dados
+- ✅ Importação real de despesas funcionando
+- ✅ Sistema de backup seletivo por categoria
+- ✅ Botão "Limpar Todos os Dados"
+- ✅ Next.js 16.0.10 (vulnerabilidade corrigida)
+- ✅ Histórico de backups com versionamento
