@@ -70,6 +70,7 @@ interface VehicleFuelDashboardProps {
   allVehicles: Vehicle[];
   onOpenForm: (expense: VehicleExpense | null) => void;
   onDeleteExpense: (id: string) => void;
+  onAddExpense: (expense: Omit<VehicleExpense, 'id'>) => void;
 }
 
 export function VehicleFuelDashboard({
@@ -78,6 +79,7 @@ export function VehicleFuelDashboard({
   allVehicles,
   onOpenForm,
   onDeleteExpense,
+  onAddExpense,
 }: VehicleFuelDashboardProps) {
   const [tripDistance, setTripDistance] = React.useState(500);
   const [importFile, setImportFile] = React.useState<File | null>(null);
@@ -189,33 +191,52 @@ export function VehicleFuelDashboard({
   };
 
   // Função para processar arquivo de importação
-  const handleImport = (file: File) => {
+  const handleImport = async (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
-        let importedExpenses: VehicleExpense[] = [];
+        let importedExpenses: Omit<VehicleExpense, 'id'>[] = [];
 
         if (file.name.endsWith('.json')) {
           const data = JSON.parse(content);
-          importedExpenses = data.expenses || data;
+          const expensesData = data.expenses || data;
+          
+          importedExpenses = expensesData.map((expense: any) => ({
+            vehicleId: vehicle.id,
+            date: expense.date,
+            type: expense.type,
+            amount: expense.amount,
+            odometer: expense.odometer,
+            previousOdometer: expense.previousOdometer,
+            liters: expense.liters,
+            fuelType: expense.fuelType,
+            station: expense.station,
+            description: expense.description,
+          }));
         } else if (file.name.endsWith('.csv')) {
           const lines = content.split('\n');
-          const headers = lines[0].split(';').map(h => h.replace(/"/g, ''));
+          const headers = lines[0].split(';').map(h => h.replace(/"/g, '').trim());
           
           importedExpenses = lines.slice(1)
             .filter(line => line.trim())
-            .map((line, index) => {
-              const values = line.split(';').map(v => v.replace(/"/g, ''));
-              const [date, type, fuelType, , odometer, , liters, station, amount, , , , description] = values;
+            .map((line) => {
+              const values = line.split(';').map(v => v.replace(/"/g, '').trim());
+              const [date, type, fuelType, kmInitial, kmFinal, , liters, station, amount, , , , description] = values;
               
+              // Converter data do formato brasileiro (DD/MM/YYYY) para ISO
+              const dateParts = date.split('/');
+              const isoDate = dateParts.length === 3 ? 
+                new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])).toISOString() :
+                new Date().toISOString();
+
               return {
-                id: `imported-${Date.now()}-${index}`,
                 vehicleId: vehicle.id,
-                date: new Date(date.split('/').reverse().join('-')).toISOString(),
+                date: isoDate,
                 type: type === 'Combustível' ? 'fuel' as const : 'other' as const,
                 amount: parseFloat(amount.replace(',', '.')),
-                odometer: parseInt(odometer),
+                odometer: parseInt(kmFinal) || 0,
+                previousOdometer: kmInitial && kmInitial !== '-' ? parseInt(kmInitial) : undefined,
                 liters: liters && liters !== '-' ? parseFloat(liters.replace(',', '.')) : undefined,
                 fuelType: fuelType && fuelType !== '-' ? 
                   Object.keys(fuelTypeLabels).find(key => fuelTypeLabels[key as FuelType] === fuelType) as FuelType : undefined,
@@ -225,19 +246,30 @@ export function VehicleFuelDashboard({
             });
         }
 
-        // Aqui você precisaria chamar uma função para adicionar as despesas importadas
-        // Como não temos acesso direto ao hook, vamos mostrar uma mensagem
+        // Adicionar todas as despesas importadas
+        let successCount = 0;
+        for (const expense of importedExpenses) {
+          try {
+            await onAddExpense(expense);
+            successCount++;
+          } catch (error) {
+            console.error('Error adding expense:', error);
+          }
+        }
+
         toast({
-          title: "Importação Preparada",
-          description: `${importedExpenses.length} despesas prontas para importação. Funcionalidade em desenvolvimento.`
+          title: "Importação Concluída",
+          description: `${successCount} de ${importedExpenses.length} despesas importadas com sucesso.`
         });
+
+        setImportFile(null);
 
       } catch (error) {
         console.error('Import error:', error);
         toast({
           variant: "destructive",
           title: "Erro na Importação",
-          description: "Não foi possível processar o arquivo. Verifique o formato."
+          description: "Não foi possível processar o arquivo. Verifique o formato e tente novamente."
         });
       }
     };

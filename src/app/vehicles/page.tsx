@@ -333,6 +333,7 @@ export default function VehiclesPage() {
                         allVehicles={vehicles}
                         onOpenForm={handleOpenExpenseForm}
                         onDeleteExpense={deleteVehicleExpense}
+                        onAddExpense={addVehicleExpense}
                     />
                     <VehicleFuelCharts
                         key={`${selectedVehicle.id}-fuel-charts`}
