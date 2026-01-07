@@ -104,23 +104,45 @@ export function VehicleFuelDashboard({
         'Descrição'
       ];
 
-      const csvData = expenses.map(expense => [
-        new Date(expense.date).toLocaleDateString('pt-BR'),
-        expense.type === 'fuel' ? 'Combustível' : otherExpenseTypeDetails[expense.type]?.label || expense.type,
-        expense.fuelType ? fuelTypeLabels[expense.fuelType] : '-',
-        expense.previousOdometer || '-',
-        expense.odometer,
-        expense.previousOdometer ? expense.odometer - expense.previousOdometer : '-',
-        expense.liters || '-',
-        expense.station || '-',
-        expense.amount.toFixed(2).replace('.', ','),
-        expense.liters ? (expense.amount / expense.liters).toFixed(2).replace('.', ',') : '-',
-        expense.liters && expense.previousOdometer ? 
-          ((expense.odometer - expense.previousOdometer) / expense.liters).toFixed(2).replace('.', ',') : '-',
-        expense.liters && expense.previousOdometer ? 
-          (expense.amount / (expense.odometer - expense.previousOdometer)).toFixed(2).replace('.', ',') : '-',
-        expense.description || '-'
-      ]);
+      const csvData = expenses.map(expense => {
+        // Determinar o tipo da despesa
+        let tipoDescricao = '';
+        if (expense.type === 'fuel') {
+          tipoDescricao = 'Combustível';
+        } else if (expense.type === 'maintenance') {
+          tipoDescricao = 'Manutenção';
+        } else if (expense.type === 'documents') {
+          tipoDescricao = 'Documentação';
+        } else if (expense.type === 'insurance') {
+          tipoDescricao = 'Seguro';
+        } else if (expense.type === 'other') {
+          tipoDescricao = 'Outro';
+        } else {
+          tipoDescricao = expense.type || 'Não definido';
+        }
+
+        // Calcular valores
+        const kmRodados = expense.previousOdometer ? expense.odometer - expense.previousOdometer : 0;
+        const precoLitro = expense.liters && expense.liters > 0 ? expense.amount / expense.liters : 0;
+        const kmPorLitro = expense.liters && expense.liters > 0 && kmRodados > 0 ? kmRodados / expense.liters : 0;
+        const precoPorKm = kmRodados > 0 ? expense.amount / kmRodados : 0;
+
+        return [
+          new Date(expense.date).toLocaleDateString('pt-BR'),
+          tipoDescricao,
+          expense.fuelType ? fuelTypeLabels[expense.fuelType] : '-',
+          expense.previousOdometer ? expense.previousOdometer.toString() : '-',
+          expense.odometer.toString(),
+          kmRodados > 0 ? kmRodados.toString() : '-',
+          expense.liters ? expense.liters.toString().replace('.', ',') : '-',
+          expense.station || '-',
+          expense.amount.toFixed(2).replace('.', ','),
+          precoLitro > 0 ? precoLitro.toFixed(2).replace('.', ',') : '-',
+          kmPorLitro > 0 ? kmPorLitro.toFixed(2).replace('.', ',') : '-',
+          precoPorKm > 0 ? precoPorKm.toFixed(4).replace('.', ',') : '-',
+          expense.description || '-'
+        ];
+      });
 
       const csvContent = [headers, ...csvData]
         .map(row => row.map(cell => `"${cell}"`).join(';'))
